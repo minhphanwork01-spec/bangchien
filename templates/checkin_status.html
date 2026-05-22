@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Báo danh – BangCheck{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-md-7 col-lg-5">
+
+    {% if not event %}
+    <div class="card shadow-sm text-center p-4">
+      <div class="fs-1 mb-2">😴</div>
+      <h5 class="fw-bold">Chưa có bang chiến nào đang mở</h5>
+      <p class="text-muted">Liên hệ leader để biết lịch bang chiến tuần này.</p>
+      <hr>
+      <p class="small text-muted mb-1">Bạn đang đăng nhập là:</p>
+      <p class="fw-bold fs-5 mb-3">{{ member.display_name }}</p>
+      <form method="POST" action="{% url 'clear_member' %}">
+        {% csrf_token %}
+        <button class="btn btn-outline-secondary btn-sm">🔄 Không phải tôi? Chọn lại</button>
+      </form>
+    </div>
+
+    {% else %}
+    <div class="card shadow-sm">
+      <div class="card-header bg-dark text-white text-center py-3">
+        <div class="fs-6 text-warning fw-bold">⚔️ {{ event.title }}</div>
+        <div class="fs-5 fw-bold">{{ event.event_date|date:"l, d/m/Y" }}</div>
+        {% if event.deadline_at %}
+          <div class="small text-light opacity-75">Hạn báo danh: {{ event.deadline_at|date:"H:i d/m" }}</div>
+        {% endif %}
+      </div>
+
+      <div class="card-body p-4">
+        <div class="text-center mb-4">
+          <p class="text-muted small mb-1">Xin chào,</p>
+          <h4 class="fw-bold mb-0">{{ member.display_name }}</h4>
+          <div class="mt-1">
+            {% if member.class_name %}<span class="badge bg-secondary">{{ member.class_label }}</span>{% endif %}
+          </div>
+        </div>
+
+        {% if attendance %}
+        <div class="current-status-box mb-4 p-3 rounded text-center status-{{ attendance.status }}">
+          <div class="small text-muted mb-1">Trạng thái hiện tại</div>
+          <div class="fw-bold fs-5">
+            {% if attendance.status == 'joined' %}✅ Tham gia{% elif attendance.status == 'absent' %}❌ Không tham gia{% endif %}
+          </div>
+          <div class="small text-muted mt-1 opacity-75">Cập nhật: {{ attendance.updated_at|date:"H:i d/m" }}</div>
+        </div>
+        {% endif %}
+
+        <p class="text-center text-muted small mb-3">
+          {% if attendance %}Bạn có muốn đổi trạng thái?{% else %}Bạn có tham gia bang chiến không?{% endif %}
+        </p>
+
+        <form method="POST" action="{% url 'submit_attendance' %}" id="checkinForm">
+          {% csrf_token %}
+
+          <div class="row g-2">
+            <div class="col-6">
+              <button type="submit" name="status" value="joined" class="btn btn-status w-100 {% if attendance.status == 'joined' %}btn-joined-active{% else %}btn-joined{% endif %}">
+                ✅<br>Tham gia
+              </button>
+            </div>
+            <div class="col-6">
+              <button type="submit" name="status" value="absent" class="btn btn-status w-100 {% if attendance.status == 'absent' %}btn-absent-active{% else %}btn-absent{% endif %}">
+                ❌<br>Không tham gia
+              </button>
+            </div>
+          </div>
+        </form>
+
+      </div>
+
+      <div class="card-footer text-center py-3 bg-light">
+        <form method="POST" action="{% url 'clear_member' %}" class="d-inline">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-link btn-sm text-muted p-0">🔄 Không phải {{ member.display_name }}? Chọn lại</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="text-center mt-3">
+      <a href="{% url 'public_result' %}" class="btn btn-outline-secondary btn-sm">📊 Xem kết quả điểm danh</a>
+    </div>
+
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

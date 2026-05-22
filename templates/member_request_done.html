@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Đã gửi yêu cầu – BangCheck{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-md-6 col-lg-4">
+    <div class="card shadow-sm text-center p-4">
+      <div class="fs-1 mb-2">✅</div>
+      <h5 class="fw-bold mb-2">Yêu cầu đã được gửi!</h5>
+      <p class="text-muted mb-4">
+        Leader sẽ xem xét và thêm bạn vào danh sách thành viên. Sau khi được duyệt, bạn có thể chọn tên để báo danh.
+      </p>
+      <a href="{% url 'checkin' %}" class="btn btn-primary">
+        ← Quay lại trang báo danh
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

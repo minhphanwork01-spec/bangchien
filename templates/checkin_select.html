@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% block title %}Chọn nhân vật – BangCheck{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-md-8 col-lg-6">
+
+    {% if event %}
+      <div class="text-center mb-3">
+        <span class="badge bg-success fs-6 px-3 py-2">⚔️ {{ event.title }} – {{ event.event_date|date:"d/m/Y" }}</span>
+      </div>
+    {% else %}
+      <div class="alert alert-warning text-center">
+        ⚠️ Hiện chưa có sự kiện bang chiến nào đang mở. Liên hệ leader để biết thêm.
+      </div>
+    {% endif %}
+
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h4 class="card-title text-center mb-1 fw-bold">Bạn là ai? 🧙</h4>
+        <p class="text-center text-muted small mb-3">Tìm tên nhân vật của bạn để báo danh</p>
+
+        <!-- Ô tìm kiếm (chỉ để lọc, không submit trực tiếp – BR2/BR3) -->
+        <input
+          type="text"
+          id="searchInput"
+          class="form-control form-control-lg mb-3"
+          placeholder="🔍 Gõ tên để tìm..."
+          autocomplete="off"
+          autocorrect="off"
+          spellcheck="false"
+        >
+
+        <div id="memberList">
+          <!-- Populated by JS from members_json -->
+        </div>
+
+        <div id="noResult" class="text-center py-3 d-none">
+          <p class="text-muted">Không tìm thấy nhân vật phù hợp.</p>
+        </div>
+
+        <div id="emptyState" class="text-center py-3">
+          <p class="text-muted small">Bắt đầu gõ tên để tìm kiếm ({{ total_members }} thành viên)</p>
+        </div>
+
+        <hr class="my-3">
+
+        <div class="text-center">
+          <a href="{% url 'member_request' %}" class="btn btn-outline-secondary btn-sm">
+            ❓ Không thấy tên của tôi
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Form ẩn để submit member_id (POST) -->
+<!-- BR1: submit dùng member_id, không dùng text name -->
+<form id="selectForm" method="POST" action="{% url 'select_member' %}">
+  {% csrf_token %}
+  <input type="hidden" name="member_id" id="selectedMemberId" value="">
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Members data từ server (đã normalize search_name) – BR3: chỉ dùng để lọc
+const MEMBERS = {{ members_json|safe }};
+
+const searchInput  = document.getElementById('searchInput');
+const memberList   = document.getElementById('memberList');
+const noResult     = document.getElementById('noResult');
+const emptyState   = document.getElementById('emptyState');
+const selectForm   = document.getElementById('selectForm');
+const selectedId   = document.getElementById('selectedMemberId');
+
+// Chuẩn hóa text tìm kiếm phía client (khớp với normalize_search_name phía server)
+function normalize(text) {
+  return text
+    .toLowerCase()
+    .replace(/đ/g, 'd')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
+
+function renderMembers(list) {
+  if (list.length === 0) {
+    memberList.innerHTML = '';
+    noResult.classList.remove('d-none');
+    emptyState.classList.add('d-none');
+    return;
+  }
+  noResult.classList.add('d-none');
+  emptyState.classList.add('d-none');
+
+  memberList.innerHTML = list.map(m => `
+    <div class="member-card border rounded p-3 mb-2 d-flex justify-content-between align-items-center">
+      <div class="flex-grow-1">
+        <div class="fw-bold fs-5">${escHtml(m.display_name)}</div>
+        <div class="small text-muted">
+          ${m.class_name ? '<span class="badge bg-secondary me-1">' + escHtml(m.class_label || m.class_name) + '</span>' : ''}
+        </div>
+      </div>
+      <button type="button" class="btn btn-primary btn-lg ms-3 flex-shrink-0"
+              onclick="selectMember(${m.id})">
+        Đây là tôi ✅
+      </button>
+    </div>
+  `).join('');
+}
+
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// BR1: submit bằng member_id (không phải text input)
+function selectMember(id) {
+  selectedId.value = id;
+  selectForm.submit();
+}
+
+searchInput.addEventListener('input', function () {
+  const q = normalize(this.value.trim());
+  if (!q) {
+    memberList.innerHTML = '';
+    noResult.classList.add('d-none');
+    emptyState.classList.remove('d-none');
+    return;
+  }
+  const filtered = MEMBERS.filter(m =>
+    normalize(m.display_name).includes(q) || m.search_name.includes(q)
+  );
+  renderMembers(filtered);
+});
+
+// Focus ô search khi load
+searchInput.focus();
+</script>
+{% endblock %}

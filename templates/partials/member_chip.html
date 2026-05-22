@@ -1,0 +1,32 @@
+<div class="member-chip class-{{ m.class_slug }}"
+     draggable="true"
+     data-member-id="{{ m.id }}"
+     data-strategy-note="{{ m.strategy_note|default:'' }}"
+     ondragstart="dragMember(event)"
+     ondragend="dragEnd(event)">
+
+  {% if m.variant_icon %}
+    <div class="chip-icon" title="{{ m.class_variant }}">{{ m.variant_icon }}</div>
+  {% endif %}
+
+  <div class="chip-main">
+    <div class="chip-topline">
+      <div class="chip-name" title="{{ m.display_name }}">{{ m.display_name }}</div>
+
+      {% if editable_note %}
+      <button type="button"
+              class="chip-note-btn"
+              title="Sửa ghi chú skill/chiến thuật cá nhân"
+              onclick="editStrategyNote(event, '{{ m.id }}')">
+        ✎
+      </button>
+      {% endif %}
+    </div>
+
+    {% if m.strategy_note %}
+      <div class="chip-strategy-note" title="{{ m.strategy_note }}">{{ m.strategy_note }}</div>
+    {% else %}
+      <div class="chip-strategy-note chip-strategy-note-empty"></div>
+    {% endif %}
+  </div>
+</div>

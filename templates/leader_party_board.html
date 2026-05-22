@@ -1,0 +1,398 @@
+{% extends "base.html" %}
+{% block title %}Xếp đội hình – BangCheck{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-xxl-11">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+      <div>
+        <h4 class="fw-bold mb-1">🧩 Xếp đội hình bang chiến</h4>
+        <div class="text-muted small">{{ event.title }} · {{ event.event_date|date:"d/m/Y" }}</div>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        <a href="{% url 'leader_dashboard' %}" class="btn btn-outline-secondary btn-sm">← Dashboard</a>
+        <a href="{% url 'public_result' %}" class="btn btn-outline-primary btn-sm">Kết quả public</a>
+      </div>
+    </div>
+
+    <div class="alert alert-info py-2 small">
+      Kéo thả thẻ nhân vật vào ô đội hình. Pool chỉ lấy người đã báo <b>Tham gia</b> trong event hiện tại.
+      <div class="tap-move-hint mt-1">📱 Trên điện thoại: chạm vào người cần xếp, rồi chạm vào ô muốn đặt.</div>
+    </div>
+
+    <div class="party-layout">
+      <aside class="party-pool card shadow-sm">
+        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+          <span>📥 Chưa xếp</span>
+          <span class="badge bg-light text-dark" data-count="unassigned">{{ unassigned|length }}</span>
+        </div>
+        <div class="card-body p-2 party-pool-drop" data-team="unassigned" data-position="" ondragover="allowDrop(event)" ondrop="dropMember(event)">
+          {% if unassigned %}
+            {% for m in unassigned %}
+              {% include "partials/member_chip.html" with m=m editable_note=True %}
+            {% endfor %}
+          {% else %}
+            <div class="text-center text-muted small py-4 party-empty-message">Tất cả người báo tham gia đã được xếp.</div>
+          {% endif %}
+        </div>
+      </aside>
+
+      <section class="party-main">
+        <ul class="nav nav-pills mb-3" id="partyTabs" role="tablist">
+          {% for key, board in boards.items %}
+          <li class="nav-item" role="presentation">
+            <button class="nav-link {% if forloop.first %}active{% endif %}" id="tab-{{ key }}" data-bs-toggle="pill" data-bs-target="#panel-{{ key }}" type="button" role="tab">
+              {{ board.short }} <span class="badge bg-secondary ms-1" data-tab-count="{{ key }}">{{ board.count }}/{{ board.capacity }}</span>
+            </button>
+          </li>
+          {% endfor %}
+        </ul>
+
+        <div class="tab-content">
+          {% for key, board in boards.items %}
+          <div class="tab-pane fade {% if forloop.first %}show active{% endif %}" id="panel-{{ key }}" role="tabpanel">
+            <div class="card shadow-sm party-board-card">
+              <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <div>
+                  <h5 class="mb-0 fw-bold">{{ board.label }}</h5>
+                  <div class="small text-muted">30 ô xếp đội · 5 cột x 6 người</div>
+                </div>
+                <span class="badge text-bg-dark" data-count="{{ key }}" data-capacity="{{ board.capacity }}">{{ board.count }}/{{ board.capacity }}</span>
+              </div>
+              <div class="team-note-editor border-bottom bg-light p-2 p-md-3">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+                  <div>
+                    <div class="fw-bold small">📝 Ghi chú chiến thuật {{ board.short }}</div>
+                    <div class="small text-muted">Note chung riêng cho tab {{ board.label }}, public chỉ xem.</div>
+                  </div>
+                  <button type="button" class="btn btn-sm btn-dark" onclick="saveSingleTeamNote('{{ key }}')">Lưu note {{ board.short }}</button>
+                </div>
+                <textarea id="team-note-{{ key }}"
+                          class="form-control form-control-sm team-note-input"
+                          rows="3"
+                          data-team-note="{{ key }}"
+                          placeholder="Ghi chú chung cho {{ board.short }}...">{{ board.note }}</textarea>
+              </div>
+              <div class="card-body p-2 p-md-3">
+                <div class="party-board-scroll">
+                  <div class="party-grid party-grid-{{ key }}" style="--party-cols: {{ board.cols }};">
+                    {% for row in board.rows %}
+                      {% for cell in row %}
+                      <div class="party-cell" data-team="{{ key }}" data-position="{{ cell.position }}" ondragover="allowDrop(event)" ondrop="dropMember(event)">
+                        <div class="party-cell-index">{{ cell.position }}</div>
+                        {% if cell.member %}
+                          {% include "partials/member_chip.html" with m=cell.member editable_note=True %}
+                        {% endif %}
+                      </div>
+                      {% endfor %}
+                    {% endfor %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </section>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+  <div id="partyToast" class="toast text-bg-success" role="alert">
+    <div class="toast-body" id="partyToastMsg">Đã lưu.</div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const CSRF = document.querySelector('meta[name="csrf-token"]').content;
+const toastEl = document.getElementById('partyToast');
+const partyToast = toastEl ? new bootstrap.Toast(toastEl) : null;
+
+let draggedMemberId = null;
+let selectedMemberId = null;
+
+function allowDrop(event) {
+  event.preventDefault();
+}
+
+function dragMember(event) {
+  const chip = event.currentTarget;
+  draggedMemberId = chip.dataset.memberId;
+  event.dataTransfer.setData('text/plain', draggedMemberId);
+  event.dataTransfer.effectAllowed = 'move';
+  chip.classList.add('dragging');
+}
+
+function dragEnd(event) {
+  event.currentTarget.classList.remove('dragging');
+}
+
+function showPartyToast(message, isError = false) {
+  const msg = document.getElementById('partyToastMsg');
+  if (msg) msg.textContent = message;
+  if (toastEl) {
+    toastEl.classList.toggle('text-bg-success', !isError);
+    toastEl.classList.toggle('text-bg-danger', isError);
+  }
+  if (partyToast) partyToast.show();
+}
+
+function getChip(memberId) {
+  return document.querySelector(`.member-chip[data-member-id="${memberId}"]`);
+}
+
+function getPool() {
+  return document.querySelector('.party-pool-drop[data-team="unassigned"]');
+}
+
+function clearSelectedChip() {
+  document.querySelectorAll('.member-chip.is-selected-for-move').forEach(el => {
+    el.classList.remove('is-selected-for-move');
+  });
+  selectedMemberId = null;
+}
+
+function selectChipForMove(memberId) {
+  clearSelectedChip();
+  selectedMemberId = memberId;
+  document.querySelectorAll(`.member-chip[data-member-id="${memberId}"]`).forEach(el => {
+    el.classList.add('is-selected-for-move');
+  });
+  showPartyToast('Đã chọn thẻ. Chạm vào ô muốn đặt.');
+}
+
+function ensurePoolEmptyMessage() {
+  const pool = getPool();
+  if (!pool) return;
+  const chips = pool.querySelectorAll(':scope > .member-chip');
+  let empty = pool.querySelector(':scope > .party-empty-message');
+  if (chips.length === 0) {
+    if (!empty) {
+      empty = document.createElement('div');
+      empty.className = 'text-center text-muted small py-4 party-empty-message';
+      empty.textContent = 'Tất cả người báo tham gia đã được xếp.';
+      pool.appendChild(empty);
+    }
+  } else if (empty) {
+    empty.remove();
+  }
+}
+
+function updatePartyCounts() {
+  document.querySelectorAll('[data-count]').forEach(el => {
+    const team = el.dataset.count;
+    if (team === 'unassigned') {
+      const pool = getPool();
+      el.textContent = pool ? pool.querySelectorAll(':scope > .member-chip').length : 0;
+      return;
+    }
+    const capacity = el.dataset.capacity || document.querySelector(`[data-tab-count="${team}"]`)?.textContent?.split('/')[1] || '';
+    const count = document.querySelectorAll(`.party-cell[data-team="${team}"] > .member-chip`).length;
+    el.textContent = capacity ? `${count}/${capacity}` : count;
+    const tabBadge = document.querySelector(`[data-tab-count="${team}"]`);
+    if (tabBadge && capacity) tabBadge.textContent = `${count}/${capacity}`;
+  });
+  ensurePoolEmptyMessage();
+}
+
+function moveChipInDom(memberId, dropTarget) {
+  const chip = getChip(memberId);
+  if (!chip || !dropTarget) return;
+
+  const oldParent = chip.parentElement;
+  const targetTeam = dropTarget.dataset.team;
+  const targetPosition = dropTarget.dataset.position || '';
+
+  if (targetTeam === 'unassigned') {
+    getPool().appendChild(chip);
+    updatePartyCounts();
+    return;
+  }
+
+  const targetCell = document.querySelector(`.party-cell[data-team="${targetTeam}"][data-position="${targetPosition}"]`);
+  if (!targetCell) return;
+
+  const occupant = Array.from(targetCell.children).find(el => el.classList && el.classList.contains('member-chip'));
+  const oldParentIsCell = oldParent && oldParent.classList.contains('party-cell');
+
+  if (occupant && occupant !== chip) {
+    if (oldParentIsCell) {
+      oldParent.appendChild(occupant);
+    } else {
+      getPool().appendChild(occupant);
+    }
+  }
+
+  targetCell.appendChild(chip);
+  updatePartyCounts();
+}
+
+async function savePartyMove(memberId, dropTarget) {
+  const chip = getChip(memberId);
+  if (!chip || !dropTarget) return;
+
+  const oldParent = chip.parentElement;
+  const oldNextSibling = chip.nextElementSibling;
+  const targetTeam = dropTarget.dataset.team;
+  const targetPosition = dropTarget.dataset.position || null;
+
+  try {
+    const resp = await fetch('{% url "leader_party_move" %}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': CSRF,
+      },
+      body: JSON.stringify({
+        member_id: memberId,
+        target_team: targetTeam,
+        target_position: targetPosition,
+      })
+    });
+
+    const data = await resp.json();
+
+    if (!resp.ok || !data.success) {
+      showPartyToast(data.error || 'Không lưu được vị trí.', true);
+      return;
+    }
+
+    moveChipInDom(memberId, dropTarget);
+    clearSelectedChip();
+    showPartyToast(data.message || 'Đã lưu vị trí.');
+  } catch (e) {
+    if (oldParent && !oldParent.contains(chip)) {
+      oldParent.insertBefore(chip, oldNextSibling);
+    }
+    showPartyToast('Lỗi kết nối khi lưu vị trí.', true);
+  }
+}
+
+async function dropMember(event) {
+  event.preventDefault();
+  const dropTarget = event.currentTarget.closest('[data-team]');
+  const memberId = event.dataTransfer.getData('text/plain') || draggedMemberId;
+  if (!memberId || !dropTarget) return;
+  await savePartyMove(memberId, dropTarget);
+}
+
+async function editStrategyNote(event, memberId) {
+  event.preventDefault();
+  event.stopPropagation();
+
+  const chip = getChip(memberId);
+  if (!chip) return;
+
+  const currentNote = chip.dataset.strategyNote || '';
+  const newNote = window.prompt('Ghi chú skill/chiến thuật cá nhân:', currentNote);
+  if (newNote === null) return;
+
+  try {
+    const resp = await fetch('{% url "leader_party_note" %}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': CSRF,
+      },
+      body: JSON.stringify({
+        member_id: memberId,
+        strategy_note: newNote,
+      })
+    });
+    const data = await resp.json();
+
+    if (!resp.ok || !data.success) {
+      showPartyToast(data.error || 'Không lưu được ghi chú.', true);
+      return;
+    }
+
+    document.querySelectorAll(`.member-chip[data-member-id="${memberId}"]`).forEach(item => {
+      item.dataset.strategyNote = data.strategy_note || '';
+      let noteEl = item.querySelector('.chip-strategy-note');
+      if (!noteEl) {
+        noteEl = document.createElement('div');
+        noteEl.className = 'chip-strategy-note';
+        item.querySelector('.chip-main')?.appendChild(noteEl);
+      }
+      noteEl.textContent = data.strategy_note || '';
+      noteEl.title = data.strategy_note || '';
+      noteEl.classList.toggle('chip-strategy-note-empty', !data.strategy_note);
+    });
+
+    showPartyToast(data.message || 'Đã lưu ghi chú.');
+  } catch (e) {
+    showPartyToast('Lỗi kết nối khi lưu ghi chú.', true);
+  }
+}
+
+async function saveTeamNote(teamKey, note) {
+  const resp = await fetch('{% url "leader_party_team_note" %}', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': CSRF,
+    },
+    body: JSON.stringify({ team_key: teamKey, note })
+  });
+  const data = await resp.json();
+  if (!resp.ok || !data.success) {
+    throw new Error(data.error || 'Không lưu được ghi chú team.');
+  }
+  return data;
+}
+
+async function saveSingleTeamNote(teamKey) {
+  const input = document.querySelector(`[data-team-note="${teamKey}"]`);
+  if (!input) return;
+
+  try {
+    await saveTeamNote(teamKey, input.value);
+    showPartyToast('Đã lưu ghi chú team.');
+  } catch (e) {
+    showPartyToast(e.message || 'Không lưu được ghi chú team.', true);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const savedTab = localStorage.getItem('bangcheck_party_active_tab');
+  if (savedTab) {
+    const trigger = document.querySelector(`#partyTabs button[data-bs-target="${savedTab}"]`);
+    if (trigger) bootstrap.Tab.getOrCreateInstance(trigger).show();
+  }
+
+  document.querySelectorAll('#partyTabs button[data-bs-toggle="pill"]').forEach(btn => {
+    btn.addEventListener('shown.bs.tab', event => {
+      localStorage.setItem('bangcheck_party_active_tab', event.target.dataset.bsTarget);
+    });
+  });
+
+  // Mobile/touch fallback: tap a chip, then tap a cell/pool to move.
+  document.addEventListener('click', async event => {
+    const noteButton = event.target.closest('.chip-note-btn');
+    if (noteButton) return;
+
+    const chip = event.target.closest('.member-chip[data-member-id]');
+    if (chip && !chip.classList.contains('member-chip-readonly')) {
+      event.preventDefault();
+      event.stopPropagation();
+      selectChipForMove(chip.dataset.memberId);
+      return;
+    }
+
+    const target = event.target.closest('.party-cell[data-team], .party-pool-drop[data-team="unassigned"]');
+    if (target && selectedMemberId) {
+      event.preventDefault();
+      event.stopPropagation();
+      await savePartyMove(selectedMemberId, target);
+    }
+  });
+
+  ensurePoolEmptyMessage();
+});
+</script>
+{% endblock %}

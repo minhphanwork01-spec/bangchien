@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}Yêu cầu thành viên – BangCheck{% endblock %}
+{% block body_class %}bg-light{% endblock %}
+
+{% block content %}
+<div class="row">
+
+  <!-- Sidebar -->
+  <div class="col-12 col-md-2 mb-3 mb-md-0">
+    <div class="list-group list-group-flush shadow-sm rounded bg-white">
+      <a href="{% url 'leader_dashboard' %}" class="list-group-item list-group-item-action">📊 Dashboard</a>
+      <a href="{% url 'leader_events' %}" class="list-group-item list-group-item-action">📅 Sự kiện</a>
+      <a href="{% url 'leader_party_board' %}" class="list-group-item list-group-item-action text-warning">🧩 Xếp đội hình</a>
+      <a href="{% url 'leader_member_requests' %}" class="list-group-item list-group-item-action active d-flex justify-content-between align-items-center">
+        📋 Yêu cầu thành viên
+        {% if pending_requests_count %}<span class="badge bg-danger">{{ pending_requests_count }}</span>{% endif %}
+      </a>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="col-12 col-md-10">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 class="fw-bold mb-0">📋 Yêu cầu thêm thành viên</h5>
+      {% if pending_requests_count %}
+        <span class="badge bg-danger fs-6">{{ pending_requests_count }} chờ duyệt</span>
+      {% endif %}
+    </div>
+
+    <!-- Status filter tabs -->
+    <div class="btn-group mb-3">
+      <a href="?status=pending"
+         class="btn btn-sm {% if status_filter == 'pending' %}btn-danger{% else %}btn-outline-danger{% endif %}">
+        Chờ duyệt
+      </a>
+      <a href="?status=approved"
+         class="btn btn-sm {% if status_filter == 'approved' %}btn-success{% else %}btn-outline-success{% endif %}">
+        Đã duyệt
+      </a>
+      <a href="?status=rejected"
+         class="btn btn-sm {% if status_filter == 'rejected' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">
+        Từ chối
+      </a>
+      <a href="?"
+         class="btn btn-sm {% if not status_filter %}btn-dark{% else %}btn-outline-dark{% endif %}">
+        Tất cả
+      </a>
+    </div>
+
+    {% if requests %}
+    <div class="card shadow-sm border-0">
+      <div class="card-body p-0">
+        <table class="table table-hover mb-0 align-middle">
+          <thead class="table-dark">
+            <tr>
+              <th>Tên yêu cầu</th>
+              <th>Phái</th>
+              <th>Ghi chú</th>
+              <th>Trạng thái</th>
+              <th>Gửi lúc</th>
+              <th style="width:140px"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for req in requests %}
+            <tr>
+              <td class="fw-semibold">{{ req.requested_name }}</td>
+              <td>{{ req.class_name|default:"–" }}{% if req.class_variant %} · {{ req.class_variant }}{% endif %}</td>
+              <td class="small text-muted">{{ req.note|default:"–"|truncatechars:50 }}</td>
+              <td>
+                {% if req.status == 'pending' %}
+                  <span class="badge bg-warning text-dark">Chờ duyệt</span>
+                {% elif req.status == 'approved' %}
+                  <span class="badge bg-success">Đã duyệt</span>
+                {% else %}
+                  <span class="badge bg-secondary">Từ chối</span>
+                {% endif %}
+              </td>
+              <td class="small text-muted">{{ req.created_at|date:"d/m H:i" }}</td>
+              <td>
+                {% if req.status == 'pending' %}
+                <div class="d-flex gap-1">
+                  <!-- Approve: tạo Member từ request (BR4) -->
+                  <form method="POST" action="{% url 'approve_member_request' req.pk %}"
+                        onsubmit="return confirm('Duyệt và thêm \'{{ req.requested_name }}\' vào danh sách?')">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success btn-sm">✅ Duyệt</button>
+                  </form>
+                  <!-- Reject -->
+                  <form method="POST" action="{% url 'reject_member_request' req.pk %}"
+                        onsubmit="return confirm('Từ chối yêu cầu của \'{{ req.requested_name }}\'?')">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-danger btn-sm">✕</button>
+                  </form>
+                </div>
+                {% else %}
+                  <span class="text-muted small">–</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    {% else %}
+    <div class="card shadow-sm border-0">
+      <div class="card-body text-center py-5 text-muted">
+        <div class="fs-1">📭</div>
+        <p class="mt-2">Không có yêu cầu nào {% if status_filter %}ở trạng thái này{% endif %}.</p>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}

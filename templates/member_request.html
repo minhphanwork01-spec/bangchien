@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Yêu cầu thêm thành viên – BangCheck{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-md-7 col-lg-5">
+
+    <div class="card shadow-sm">
+      <div class="card-header bg-dark text-white text-center py-3">
+        <h5 class="mb-0 fw-bold">📋 Yêu cầu thêm thành viên</h5>
+      </div>
+      <div class="card-body p-4">
+
+        <div class="alert alert-info small mb-3">
+          <strong>Lưu ý:</strong> Yêu cầu sẽ được leader xem xét và duyệt. Bạn sẽ được thêm vào danh sách thành viên sau khi được duyệt.
+        </div>
+
+        <form method="POST">
+          {% csrf_token %}
+
+          {% for field in form %}
+            <div class="mb-3">
+              <label class="form-label fw-semibold">{{ field.label }}</label>
+              {{ field }}
+              {% if field.errors %}
+                <div class="text-danger small mt-1">{{ field.errors.0 }}</div>
+              {% endif %}
+            </div>
+          {% endfor %}
+
+          <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-primary btn-lg">
+              📤 Gửi yêu cầu
+            </button>
+            <a href="{% url 'checkin' %}" class="btn btn-outline-secondary">
+              ← Quay lại trang báo danh
+            </a>
+          </div>
+        </form>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script id="member_variant_filter_public">
+(function () {
+  const classSelect = document.getElementById('id_class_name');
+  const variantSelect = document.getElementById('id_class_variant');
+  if (!classSelect || !variantSelect) return;
+
+  const validVariants = {
+    'Thiết Y': ['Ngự', 'Phá'],
+    'Tố Vấn': ['Thiên Vấn', 'Tố Tâm'],
+  };
+
+  const originalOptions = Array.from(variantSelect.options).map(option => ({
+    value: option.value,
+    text: option.text,
+  }));
+
+  function addOption(optionData) {
+    if (!optionData) return;
+    const option = document.createElement('option');
+    option.value = optionData.value;
+    option.text = optionData.text;
+    variantSelect.appendChild(option);
+  }
+
+  function rebuildVariantOptions() {
+    const selectedClass = classSelect.value;
+    const currentVariant = variantSelect.value;
+    const allowed = validVariants[selectedClass] || [];
+
+    variantSelect.innerHTML = '';
+    addOption(originalOptions.find(optionData => optionData.value === ''));
+    allowed.forEach(value => {
+      addOption(originalOptions.find(optionData => optionData.value === value));
+    });
+
+    if (allowed.length === 0) {
+      variantSelect.value = '';
+      variantSelect.disabled = true;
+    } else {
+      variantSelect.disabled = false;
+      variantSelect.value = allowed.includes(currentVariant) ? currentVariant : '';
+    }
+  }
+
+  classSelect.addEventListener('change', rebuildVariantOptions);
+  rebuildVariantOptions();
+})();
+</script>
+{% endblock %}

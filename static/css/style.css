@@ -1,0 +1,843 @@
+/* =========================================
+   BangCheck – style.css
+   Mobile-first, minimal, game-themed
+   ========================================= */
+
+/* ── Base ───────────────────────────────── */
+body {
+  background-color: #f4f6f8;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* ── Status button (check-in page) ─────── */
+.btn-status {
+  height: 90px;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 12px;
+  border: 2px solid transparent;
+  line-height: 1.4;
+  transition: all 0.15s ease;
+}
+
+/* Normal states */
+.btn-joined    { background: #e8f5e9; color: #2e7d32; border-color: #a5d6a7; }
+.btn-absent    { background: #ffebee; color: #c62828; border-color: #ef9a9a; }
+
+/* Active / selected states */
+.btn-joined-active    { background: #2e7d32; color: #fff; border-color: #1b5e20; box-shadow: 0 4px 12px rgba(46,125,50,.35); }
+.btn-absent-active    { background: #c62828; color: #fff; border-color: #b71c1c; box-shadow: 0 4px 12px rgba(198,40,40,.35); }
+
+.btn-status:hover:not(:disabled) {
+  filter: brightness(0.93);
+  transform: translateY(-1px);
+}
+
+/* ── Current status box (check-in) ─────── */
+.current-status-box {
+  border: 2px solid;
+}
+.status-joined    { background: #e8f5e9; border-color: #a5d6a7 !important; color: #2e7d32; }
+.status-absent    { background: #ffebee; border-color: #ef9a9a !important; color: #c62828; }
+
+/* ── Member card (select screen) ────────── */
+.member-card {
+  background: #fff;
+  cursor: default;
+  transition: box-shadow 0.15s ease;
+}
+.member-card:hover {
+  box-shadow: 0 2px 12px rgba(0,0,0,.10);
+}
+
+/* ── Table row soft colors (dashboard) ──── */
+.table-success-soft  { background-color: #f0faf1 !important; }
+.table-danger-soft   { background-color: #fff5f5 !important; }
+.table-warning-soft  { background-color: #fffdf0 !important; }
+.table-info-soft     { background-color: #f0f8ff !important; }
+.table-secondary-soft{ background-color: #f8f9fa !important; }
+
+/* ── Dashboard status select coloring ───── */
+.status-badge-joined    { border-color: #2e7d32 !important; color: #2e7d32 !important; }
+.status-badge-absent    { border-color: #c62828 !important; color: #c62828 !important; }
+.status-badge-no_response { border-color: #999 !important; color: #999 !important; }
+
+/* ── Navbar ─────────────────────────────── */
+.navbar-brand {
+  font-size: 1.1rem;
+  letter-spacing: .5px;
+}
+
+/* ── Cards ──────────────────────────────── */
+.card {
+  border-radius: 12px;
+}
+
+/* ── Mobile tweaks ──────────────────────── */
+@media (max-width: 576px) {
+  .btn-status {
+    height: 80px;
+    font-size: 0.9rem;
+  }
+
+  .container-fluid {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .table th, .table td {
+    font-size: 0.8rem;
+    padding: 6px 8px;
+  }
+}
+
+/* ── Utilities ──────────────────────────── */
+.text-truncate-sm {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Party board / Nghịch Thủy Hàn inspired layout ── */
+
+.party-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 300px) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.party-pool {
+  position: sticky;
+  top: 12px;
+  max-height: calc(100vh - 120px);
+  overflow: hidden;
+}
+
+.party-pool .card-body {
+  max-height: calc(100vh - 420px);
+  overflow-y: auto;
+}
+
+.party-pool-drop {
+  min-height: 170px;
+}
+
+.team-note-editor {
+  border-radius: 0;
+}
+
+.team-note-input {
+  resize: vertical;
+  min-height: 52px;
+}
+
+.team-note-public {
+  border: 1px solid #d6dee8;
+  background: #f8fafc;
+  border-radius: 10px;
+  padding: 8px 10px;
+}
+
+.team-note-title {
+  font-size: .78rem;
+  font-weight: 800;
+  color: #44546a;
+  margin-bottom: 2px;
+}
+
+.team-note-text {
+  font-size: .78rem;
+  color: #263445;
+  line-height: 1.35;
+}
+
+.party-board-scroll {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 4px;
+}
+
+.party-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--party-cols), minmax(112px, 1fr));
+  gap: 8px;
+}
+
+.public-party-grid {
+  min-width: 600px;
+}
+
+.party-cell {
+  position: relative;
+  min-height: 74px;
+  border: 1px solid #c8d0da;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #f9fbff 0%, #eef2f7 100%);
+  padding: 17px 5px 5px;
+}
+
+.party-cell-readonly {
+  min-height: 68px;
+}
+
+.party-cell:hover,
+.party-pool-drop:hover {
+  outline: 2px dashed rgba(13,110,253,.35);
+  outline-offset: 2px;
+}
+
+.party-cell-readonly:hover {
+  outline: none;
+}
+
+.party-cell-index {
+  position: absolute;
+  top: 4px;
+  left: 7px;
+  font-size: .68rem;
+  color: #7a8798;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.member-chip {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 58px;
+  padding: 7px 8px;
+  border-radius: 2px;
+  border: 1px solid rgba(255,255,255,.28);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.24),
+    0 2px 6px rgba(0,0,0,.12);
+  cursor: grab;
+  user-select: none;
+  overflow: hidden;
+}
+
+.member-chip-readonly {
+  cursor: default;
+}
+
+.member-chip:active {
+  cursor: grabbing;
+}
+
+.member-chip-readonly:active {
+  cursor: default;
+}
+
+.member-chip.dragging {
+  opacity: .55;
+}
+
+.chip-icon {
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  background: rgba(255,255,255,.22);
+  border: 1px solid rgba(255,255,255,.25);
+  font-size: .88rem;
+  flex: 0 0 22px;
+}
+
+.chip-main {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.chip-topline {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.chip-name {
+  font-weight: 800;
+  font-size: .84rem;
+  line-height: 1.05;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #ffffff;
+  text-shadow: 0 1px 1px rgba(0,0,0,.18);
+}
+
+.chip-note-btn {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255,255,255,.22);
+  color: #fff;
+  font-size: .72rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.chip-note-btn:hover {
+  background: rgba(255,255,255,.36);
+}
+
+.chip-meta {
+  font-size: .64rem;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: rgba(255,255,255,.92);
+}
+
+.chip-strategy-note {
+  margin-top: 2px;
+  font-size: .62rem;
+  line-height: 1.12;
+  color: rgba(255,255,255,.95);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: .96;
+}
+
+.chip-strategy-note::before {
+  content: "✦ ";
+  opacity: .8;
+}
+
+.chip-strategy-note-empty {
+  display: none;
+}
+
+.chip-warn {
+  font-weight: 800;
+  color: #fff6c9;
+}
+
+/* Màu phái theo tone gần UI Nghịch Thủy Hàn. Icon chỉ dùng cho hệ/phân nhánh. */
+.class-thiet-y {
+  background: linear-gradient(180deg, #d79a5d 0%, #c78341 100%);
+  color: #fffaf2;
+}
+
+.class-huyet-ha {
+  background: linear-gradient(180deg, #b95f4c 0%, #a14837 100%);
+  color: #fff7f6;
+}
+
+.class-toai-mong {
+  background: linear-gradient(180deg, #98d6ee 0%, #76c2e4 100%);
+  color: #f8fdff;
+}
+
+.class-than-tuong {
+  background: linear-gradient(180deg, #6f8fcb 0%, #5879bb 100%);
+  color: #f8fbff;
+}
+
+.class-cuu-linh {
+  background: linear-gradient(180deg, #9a67c8 0%, #8553b4 100%);
+  color: #fcf8ff;
+}
+
+.class-long-ngam {
+  background: linear-gradient(180deg, #8cab5d 0%, #75944b 100%);
+  color: #fbfff7;
+}
+
+.class-to-van {
+  background: linear-gradient(180deg, #e59aae 0%, #d97c97 100%);
+  color: #fff9fb;
+}
+
+.class-unknown {
+  background: linear-gradient(180deg, #bcc6d1 0%, #9eacbb 100%);
+  color: #f9fbfd;
+}
+
+/* ── Public result compact layout ─────────────────── */
+
+.public-page {
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.public-result-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 380px) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.public-attendance-panel {
+  min-width: 0;
+}
+
+.public-attendance-body {
+  max-height: calc(100vh - 230px);
+  overflow-y: auto;
+}
+
+.public-status-group {
+  margin-bottom: 14px;
+}
+
+.public-status-group:last-child {
+  margin-bottom: 0;
+}
+
+.public-status-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  font-size: .86rem;
+  margin-bottom: 6px;
+}
+
+.public-status-title span {
+  font-size: .76rem;
+  color: #6c757d;
+}
+
+.public-compact-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 5px;
+}
+
+.public-name-pill {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+  align-items: center;
+  border-radius: 3px;
+  padding: 5px 7px;
+  min-height: 30px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.18);
+}
+
+.public-name {
+  min-width: 0;
+  color: #fff;
+  font-size: .78rem;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 1px rgba(0,0,0,.18);
+}
+
+
+.public-name-pill-muted {
+  background: linear-gradient(180deg, #e9ecef 0%, #d7dde3 100%);
+}
+
+.public-name-pill-muted .public-name {
+  color: #4b5563;
+  text-shadow: none;
+}
+
+
+.public-squad-panel {
+  min-width: 0;
+}
+
+.public-squad-tabs {
+  min-width: 320px;
+}
+
+@media (max-width: 1200px) {
+  .public-result-layout {
+    grid-template-columns: minmax(240px, 340px) minmax(0, 1fr);
+  }
+
+  .party-grid {
+    grid-template-columns: repeat(var(--party-cols), minmax(108px, 1fr));
+  }
+
+  .public-party-grid {
+    min-width: 580px;
+  }
+}
+
+@media (max-width: 992px) {
+  .party-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .party-pool {
+    position: static;
+    max-height: none;
+  }
+
+  .party-pool .card-body {
+    max-height: 300px;
+  }
+
+  .party-grid {
+    grid-template-columns: repeat(var(--party-cols), minmax(108px, 1fr));
+  }
+
+  .public-result-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .public-attendance-body {
+    max-height: none;
+  }
+
+  .public-attendance-panel {
+    order: 2;
+  }
+
+  .public-squad-panel {
+    order: 1;
+  }
+}
+
+@media (max-width: 576px) {
+  .public-page {
+    margin-left: -4px;
+    margin-right: -4px;
+  }
+
+  .public-summary .card-body {
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
+  }
+
+  .party-board-scroll {
+    margin-left: -4px;
+    margin-right: -4px;
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+
+  .party-grid {
+    gap: 6px;
+  }
+
+  .public-party-grid {
+    min-width: 540px;
+  }
+
+  .party-cell {
+    min-height: 70px;
+    padding: 15px 4px 4px;
+  }
+
+  .member-chip {
+    min-height: 50px;
+    padding: 6px 7px;
+    gap: 5px;
+  }
+
+  .chip-icon {
+    width: 20px;
+    height: 20px;
+    flex-basis: 20px;
+    font-size: .78rem;
+  }
+
+  .chip-name {
+    font-size: .78rem;
+  }
+
+  .chip-meta {
+    font-size: .58rem;
+  }
+
+  .chip-strategy-note {
+    font-size: .56rem;
+  }
+
+  .public-name-pill {
+    min-height: 28px;
+    padding: 4px 6px;
+  }
+
+  .public-name {
+    font-size: .74rem;
+  }
+}
+
+
+/* ── Mobile UX patch: tap-to-place, compact pool, readable chips ── */
+
+.member-chip.is-selected-for-move {
+  outline: 3px solid rgba(13,110,253,.75);
+  outline-offset: 2px;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.24),
+    0 0 0 4px rgba(13,110,253,.18),
+    0 3px 8px rgba(0,0,0,.18);
+}
+
+.tap-move-hint {
+  display: none;
+}
+
+@media (max-width: 992px) {
+  html,
+  body {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .navbar {
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .navbar > .d-flex {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    max-width: 100%;
+  }
+
+  .navbar .btn {
+    padding: 0.22rem 0.45rem;
+    font-size: .78rem;
+  }
+
+  main.container-fluid {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+
+  .tap-move-hint {
+    display: block;
+  }
+
+  .party-layout {
+    display: block;
+  }
+
+  .party-pool {
+    width: min(100%, 430px);
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 12px;
+  }
+
+  .party-pool .card-body {
+    max-height: 260px;
+  }
+
+  .party-pool-drop {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-content: start;
+    gap: 6px;
+    min-height: 130px;
+  }
+
+  .party-pool-drop > .party-empty-message {
+    grid-column: 1 / -1;
+  }
+
+  .party-pool-drop .member-chip {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .party-main {
+    min-width: 0;
+  }
+
+  #partyTabs,
+  #publicSquadTabs {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    gap: 4px;
+    padding-bottom: 4px;
+  }
+
+  #partyTabs .nav-item,
+  #publicSquadTabs .nav-item {
+    flex: 0 0 auto;
+  }
+
+  #partyTabs .nav-link,
+  #publicSquadTabs .nav-link {
+    white-space: nowrap;
+    padding: .38rem .62rem;
+    font-size: .9rem;
+  }
+
+  .party-board-card .card-header {
+    align-items: flex-start !important;
+  }
+
+  .team-note-editor .d-flex {
+    align-items: stretch !important;
+  }
+
+  .team-note-editor .btn {
+    width: 100%;
+  }
+
+  .team-note-input {
+    min-height: 58px;
+    font-size: .82rem;
+  }
+
+  .party-board-scroll {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .party-grid {
+    width: max-content;
+    min-width: 540px;
+    grid-template-columns: repeat(var(--party-cols), minmax(100px, 100px));
+  }
+
+  .party-cell {
+    min-height: 78px;
+    padding: 15px 4px 5px;
+  }
+
+  .member-chip {
+    min-height: 52px;
+    padding: 6px 6px 7px;
+    gap: 5px;
+  }
+
+  .chip-name {
+    font-size: .74rem;
+    line-height: 1.16;
+  }
+
+  .chip-meta {
+    font-size: .55rem;
+    line-height: 1.2;
+  }
+
+  .chip-strategy-note {
+    margin-top: 3px;
+    font-size: .54rem;
+    line-height: 1.35;
+    padding-bottom: 1px;
+  }
+
+  .chip-note-btn {
+    width: 18px;
+    height: 18px;
+    flex-basis: 18px;
+    font-size: .64rem;
+  }
+
+  .chip-icon {
+    width: 18px;
+    height: 18px;
+    flex-basis: 18px;
+    font-size: .72rem;
+  }
+
+  .public-result-layout {
+    display: block;
+  }
+
+  .public-squad-panel {
+    margin-bottom: 12px;
+  }
+
+  .public-attendance-panel {
+    margin-top: 12px;
+  }
+
+  .table-responsive {
+    border-radius: 8px;
+  }
+}
+
+@media (max-width: 576px) {
+  .party-pool {
+    width: min(100%, 380px);
+  }
+
+  .party-pool-drop {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .party-grid {
+    min-width: 510px;
+    grid-template-columns: repeat(var(--party-cols), minmax(94px, 94px));
+    gap: 6px;
+  }
+
+  .public-party-grid {
+    min-width: 510px;
+  }
+
+  .party-cell {
+    min-height: 76px;
+  }
+
+  .member-chip {
+    min-height: 52px;
+  }
+
+  .party-pool-drop .member-chip {
+    min-height: 42px;
+  }
+
+  .party-pool-drop .chip-name {
+    font-size: .70rem;
+  }
+
+  .party-pool-drop .chip-strategy-note {
+    display: none;
+  }
+
+  .chip-name {
+    font-size: .70rem;
+  }
+
+  .chip-strategy-note {
+    font-size: .52rem;
+    line-height: 1.4;
+  }
+
+  .team-note-public {
+    padding: 7px 8px;
+  }
+
+  .team-note-title {
+    font-size: .72rem;
+  }
+
+  .team-note-text {
+    font-size: .72rem;
+  }
+}
+
+@media (max-width: 390px) {
+  .party-pool-drop {
+    grid-template-columns: 1fr;
+  }
+
+  .party-grid,
+  .public-party-grid {
+    min-width: 500px;
+  }
+}

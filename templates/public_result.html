@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% block title %}Kết quả điểm danh – BangCheck{% endblock %}
+
+{% block content %}
+
+{% if not event %}
+<div class="row justify-content-center">
+  <div class="col-12 col-md-6 text-center py-5">
+    <div class="fs-1">😴</div>
+    <h5 class="mt-2 text-muted">Chưa có sự kiện bang chiến nào đang mở.</h5>
+    <a href="{% url 'checkin' %}" class="btn btn-primary mt-3">← Trang báo danh</a>
+  </div>
+</div>
+
+{% else %}
+
+<div class="public-page">
+
+  <div class="text-center mb-3">
+    <h4 class="fw-bold mb-1">⚔️ {{ event.title }}</h4>
+    <div class="text-muted small">{{ event.event_date|date:"l, d/m/Y" }}</div>
+  </div>
+
+  <div class="row g-2 mb-3 text-center public-summary">
+    <div class="col-4">
+      <div class="card border-success">
+        <div class="card-body py-2 px-1">
+          <div class="fs-5 fw-bold text-success">{{ counts.joined }}</div>
+          <div class="small text-muted">Tham gia</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-4">
+      <div class="card border-danger">
+        <div class="card-body py-2 px-1">
+          <div class="fs-5 fw-bold text-danger">{{ counts.absent }}</div>
+          <div class="small text-muted">Không tham gia</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-4">
+      <div class="card border-secondary">
+        <div class="card-body py-2 px-1">
+          <div class="fs-5 fw-bold text-secondary">{{ counts.no_response }}</div>
+          <div class="small text-muted">Chưa điểm danh</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="public-result-layout">
+
+    <aside class="public-attendance-panel">
+      <div class="card shadow-sm">
+        <div class="card-header bg-white">
+          <div class="fw-bold">📋 Điểm danh</div>
+          <div class="small text-muted">Danh sách thu gọn theo trạng thái</div>
+        </div>
+
+        <div class="card-body public-attendance-body">
+          {% with groups.joined as members %}{% if members %}
+          <section class="public-status-group">
+            <h6 class="public-status-title text-success">✅ Tham gia <span>{{ members|length }}</span></h6>
+            <div class="public-compact-list">
+              {% for m in members %}
+              <div class="public-name-pill class-{{ m.class_slug }}">
+                <span class="public-name">{{ m.display_name }}</span>
+              </div>
+              {% endfor %}
+            </div>
+          </section>
+          {% endif %}{% endwith %}
+
+          {% with groups.absent as members %}{% if members %}
+          <section class="public-status-group">
+            <h6 class="public-status-title text-danger">❌ Không tham gia <span>{{ members|length }}</span></h6>
+            <div class="public-compact-list muted">
+              {% for m in members %}
+              <div class="public-name-pill public-name-pill-muted">
+                <span class="public-name">{{ m.display_name }}</span>
+              </div>
+              {% endfor %}
+            </div>
+          </section>
+          {% endif %}{% endwith %}
+
+          {% with groups.no_response as members %}{% if members %}
+          <section class="public-status-group">
+            <h6 class="public-status-title text-secondary">⏳ Chưa điểm danh <span>{{ members|length }}</span></h6>
+            <div class="public-compact-list muted">
+              {% for m in members %}
+              <div class="public-name-pill public-name-pill-muted">
+                <span class="public-name">{{ m.display_name }}</span>
+              </div>
+              {% endfor %}
+            </div>
+          </section>
+          {% endif %}{% endwith %}
+        </div>
+      </div>
+    </aside>
+
+    <section class="public-squad-panel">
+      <div class="card shadow-sm">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center gap-2">
+          <div>
+            <div class="fw-bold">🧩 Đội hình leader đã xếp</div>
+            <div class="small text-muted">Trên điện thoại có thể kéo ngang để xem đủ 30 ô</div>
+          </div>
+          <a href="{% url 'checkin' %}" class="btn btn-primary btn-sm">Báo danh</a>
+        </div>
+
+        <div class="card-body p-2 p-md-3">
+          <ul class="nav nav-pills nav-fill public-squad-tabs mb-3" id="publicSquadTabs" role="tablist">
+            {% for key, board in boards.items %}
+            <li class="nav-item" role="presentation">
+              <button class="nav-link {% if forloop.first %}active{% endif %}"
+                      id="public-tab-{{ key }}"
+                      data-bs-toggle="pill"
+                      data-bs-target="#public-panel-{{ key }}"
+                      type="button"
+                      role="tab">
+                {{ board.short }}
+                <span class="badge bg-secondary ms-1">{{ board.count }}/{{ board.capacity }}</span>
+              </button>
+            </li>
+            {% endfor %}
+          </ul>
+
+          <div class="tab-content">
+            {% for key, board in boards.items %}
+            <div class="tab-pane fade {% if forloop.first %}show active{% endif %}"
+                 id="public-panel-{{ key }}"
+                 role="tabpanel">
+
+              {% if board.note %}
+              <div class="team-note-public mb-2">
+                <div class="team-note-title">📝 Ghi chú {{ board.short }}</div>
+                <div class="team-note-text">{{ board.note|linebreaksbr }}</div>
+              </div>
+              {% endif %}
+
+              <div class="party-board-scroll">
+                <div class="party-grid public-party-grid" style="--party-cols: {{ board.cols }};">
+                  {% for row in board.rows %}
+                    {% for cell in row %}
+                    <div class="party-cell party-cell-readonly">
+                      <div class="party-cell-index">{{ cell.position }}</div>
+                      {% if cell.member %}
+                        {% include "partials/squad_member_chip.html" with m=cell.member %}
+                      {% endif %}
+                    </div>
+                    {% endfor %}
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+{% endif %}
+{% endblock %}
