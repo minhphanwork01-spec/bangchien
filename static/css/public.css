@@ -1,0 +1,153 @@
+/* Public pages — kế thừa token từ foundation.css */
+
+.bc-command-shell { width: min(100%, 980px); margin: 0 auto }
+.bc-search-panel { padding: 22px }
+
+/* Chọn hoạt động */
+.bc-choice-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px }
+.bc-choice-card {
+  display: flex; flex-direction: column; gap: 10px; padding: 20px;
+  border: 1px solid var(--line-strong); border-radius: var(--radius-lg);
+  background: var(--surface); box-shadow: var(--shadow); color: var(--ink);
+}
+.bc-choice-card:hover { border-color: var(--accent) }
+.bc-choice-label { font-family: var(--font-display); font-size: 1.5rem; font-weight: 700 }
+.bc-choice-desc { color: var(--muted) }
+
+/* Danh sách chọn nhân vật */
+.bc-member-list { display: grid; gap: 8px; margin-top: 14px }
+.bc-member-result {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 12px;
+  padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-md);
+  background: var(--surface-strong);
+}
+.bc-member-result:hover { border-color: var(--line-strong) }
+.class-badge {
+  padding: 3px 8px; border: 1px solid var(--line); border-radius: var(--radius-sm);
+  background: var(--surface-soft); color: var(--ink); font-size: .74rem; font-weight: 600;
+}
+
+/* Metrics */
+.bc-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px }
+.bc-metric {
+  min-height: 86px; padding: 12px 14px; border: 1px solid var(--line-strong);
+  border-radius: var(--radius-md); background: var(--surface);
+  display: flex; flex-direction: column; justify-content: space-between; color: var(--ink);
+}
+.bc-metric-label { font-size: .78rem; font-weight: 700; color: inherit; letter-spacing: .02em }
+.bc-metric-value { font-family: var(--font-display); font-size: 1.8rem; line-height: 1; font-weight: 700 }
+.bc-metric.success { border-left: 3px solid var(--success); color: var(--success); background: var(--surface); background: color-mix(in srgb, var(--success) 7%, var(--surface)) }
+.bc-metric.danger  { border-left: 3px solid var(--danger);  color: var(--danger);  background: var(--surface); background: color-mix(in srgb, var(--danger) 6%, var(--surface)) }
+.bc-metric.warning { border-left: 3px solid var(--line-strong); color: var(--muted); background: var(--surface-soft) }
+.bc-metric.primary { border-left: 3px solid var(--jade); color: var(--jade-deep); background: var(--surface); background: color-mix(in srgb, var(--jade) 7%, var(--surface)) }
+.bc-metric.active  { box-shadow: inset 0 0 0 2px currentColor }
+
+/* Public result */
+.public-page { display: grid; gap: 14px }
+.public-result-layout { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(300px, .85fr); gap: 14px; align-items: start }
+.public-result-layout-simple { grid-template-columns: 1fr }
+.public-squad-panel, .public-attendance-panel { min-width: 0 }
+.public-squad-tabs, .party-team-switch { display: flex; flex-wrap: nowrap; gap: 8px; overflow-x: auto; scrollbar-width: thin }
+.bc-pill-tabs .nav-item { flex: 0 0 auto }
+.bc-pill-tabs .nav-link {
+  min-height: 38px; padding: 7px 15px; border: 1px solid var(--line-strong);
+  border-radius: var(--radius-md); color: var(--ink); font-weight: 600; white-space: nowrap; background: transparent;
+}
+.bc-pill-tabs .nav-link:hover { border-color: var(--accent); color: var(--accent) }
+.bc-pill-tabs .nav-link.active { background: var(--ink); border-color: var(--ink); color: var(--bg) }
+.bc-pill-tabs .badge { background: var(--muted); color: var(--bg); margin-left: 4px }
+.bc-pill-tabs .nav-link.active .badge { background: var(--bg); color: var(--ink) }
+
+.public-party-grid { display: grid; grid-template-columns: repeat(5, minmax(112px, 1fr)); grid-template-rows: repeat(6, 68px); gap: 7px; min-width: 590px }
+.party-cell-readonly { min-width: 0; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface-soft); overflow: hidden }
+.team-note-public { padding: 10px 12px; border: 1px solid var(--line); border-left: 3px solid var(--gold); border-radius: var(--radius-md); background: var(--surface-soft) }
+.team-note-title { font-weight: 700; color: var(--ink) }
+.team-note-text { font-size: .86rem; color: var(--muted) }
+
+.public-attendance-body { padding: 12px }
+.public-status-group { display: grid; gap: 6px; margin-bottom: 14px }
+.public-status-title {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 7px 9px; border-radius: var(--radius-sm); font-size: .8rem; font-weight: 700;
+  background: var(--surface-soft); color: var(--muted);
+}
+.public-status-title-joined  { color: var(--success); border-left: 3px solid var(--success); background: var(--surface-soft); background: color-mix(in srgb, var(--success) 9%, var(--surface)) }
+.public-status-title-absent  { color: var(--danger);  border-left: 3px solid var(--danger);  background: var(--surface-soft); background: color-mix(in srgb, var(--danger) 8%, var(--surface)) }
+.public-status-title-pending { color: var(--muted);   border-left: 3px solid var(--line-strong); background: var(--surface-soft) }
+.public-compact-list { display: grid; gap: 5px }
+.public-name-pill {
+  padding: 7px 9px; border-radius: var(--radius-sm); color: #fff; font-size: .8rem; font-weight: 600;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.public-name-pill-muted { background: var(--surface-soft); color: var(--muted); border: 1px solid var(--line) }
+.public-name-pill.class-toai-mong { background: var(--class-toai-mong) }
+.public-name-pill.class-huyet-ha  { background: var(--class-huyet-ha) }
+.public-name-pill.class-thiet-y   { background: var(--class-thiet-y) }
+.public-name-pill.class-to-van    { background: var(--class-to-van) }
+.public-name-pill.class-long-ngam { background: var(--class-long-ngam) }
+.public-name-pill.class-than-tuong{ background: var(--class-than-tuong) }
+.public-name-pill.class-cuu-linh  { background: var(--class-cuu-linh) }
+/* Chữ trên nền phái: tối cho màu sáng, sáng cho màu đậm (đủ tương phản cả 2 theme) */
+.public-name-pill.class-huyet-ha, .public-name-pill.class-to-van,
+.public-name-pill.class-than-tuong, .public-name-pill.class-cuu-linh { color: #fdf9f0 }
+.public-name-pill.class-toai-mong, .public-name-pill.class-thiet-y,
+.public-name-pill.class-long-ngam { color: #24201a }
+
+/* Login */
+.bc-login-shell { min-height: calc(100dvh - 110px); display: grid; place-items: center; padding: 20px 0 }
+.bc-login-card { width: min(100%, 420px); padding: 26px; border: 1px solid var(--line-strong); border-radius: var(--radius-lg); background: var(--surface); box-shadow: var(--shadow) }
+.bc-login-logo { display: grid; place-items: center; margin-bottom: 14px }
+.bc-login-seal {
+  width: 74px; height: 74px; display: grid; place-items: center;
+  background: var(--accent); color: var(--on-accent); border-radius: var(--radius-sm);
+  box-shadow: inset 0 0 0 3px var(--on-accent), inset 0 0 0 5px var(--accent);
+  font-family: var(--font-display); font-weight: 700; font-size: 2.3rem;
+  transform: rotate(-3deg);
+}
+
+/* Feedback */
+.feedback-card { max-width: 920px; margin: 0 auto }
+.feedback-content { white-space: pre-wrap; line-height: 1.7 }
+.feedback-textarea { min-height: 180px }
+
+/* Strategy note sheet */
+.strategy-note-sheet { position: fixed; inset: 0; z-index: 60; display: none }
+.strategy-note-sheet.is-open { display: block }
+.strategy-note-backdrop { position: absolute; inset: 0; background: rgba(15, 12, 8, .45) }
+.strategy-note-panel {
+  position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%);
+  width: min(calc(100% - 24px), 560px); padding: 16px;
+  border: 1px solid var(--line-strong); border-radius: var(--radius-lg);
+  background: var(--surface-strong); box-shadow: 0 12px 36px rgba(10, 8, 4, .3);
+}
+.strategy-note-text-full { white-space: pre-wrap; color: var(--ink); line-height: 1.55 }
+
+/* Check-in secondary actions */
+.bc-page-action-stack { display: grid; grid-template-columns: minmax(160px, 220px); justify-content: center; gap: 8px; margin-top: 2px }
+.bc-page-action-stack .btn, .bc-hero-action-stack .btn { width: 100%; white-space: nowrap }
+.bc-hero-action-stack { display: grid; grid-template-columns: minmax(150px, 190px); gap: 8px; flex: 0 0 auto }
+.bc-member-change-actions { max-width: 360px; margin-inline: auto }
+.bc-request-modal .modal-header, .bc-request-modal .modal-footer { border-color: var(--line) }
+
+/* ── BXH chuyên cần public ── */
+.lb-list { display: grid; gap: 8px; padding: 14px }
+.lb-row { display: grid; grid-template-columns: 40px minmax(0,1fr) auto; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface-strong) }
+.lb-top { border-color: var(--line-strong) }
+.lb-rank { display: grid; place-items: center; width: 34px; height: 34px; border-radius: var(--radius-sm); background: var(--surface-soft); border: 1px solid var(--line); font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; color: var(--muted) }
+.lb-rank-1 { background: var(--accent); border-color: var(--accent); color: var(--on-accent); transform: rotate(-3deg); box-shadow: inset 0 0 0 2px var(--on-accent), inset 0 0 0 3px var(--accent) }
+.lb-rank-3 { border-color: var(--gold); color: var(--gold) }
+.lb-rank-new { font-size: .8rem; background: var(--jade-soft); color: var(--jade-deep); border-color: transparent }
+.lb-main { min-width: 0 }
+.lb-nameline { display: flex; align-items: center; gap: 8px; min-width: 0 }
+.lb-name { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.lb-bar { margin-top: 6px; height: 5px; border-radius: 3px; background: var(--surface-soft); overflow: hidden }
+.lb-bar i { display: block; height: 100%; background: var(--accent); border-radius: 3px }
+.lb-newcomer .lb-bar { display: none }
+.lb-score { text-align: right; white-space: nowrap }
+.lb-count { display: block; font-family: var(--font-display); font-size: 1.2rem; font-weight: 700; line-height: 1 }
+.lb-count small { font-size: .78rem; color: var(--muted); font-family: var(--font-ui); font-weight: 600 }
+.lb-pct { font-size: .74rem; color: var(--muted); font-weight: 700 }
+@media (max-width: 640px) {
+  .lb-row { grid-template-columns: 32px minmax(0,1fr) auto; gap: 8px; padding: 9px 10px }
+  .lb-rank { width: 28px; height: 28px; font-size: .9rem }
+}

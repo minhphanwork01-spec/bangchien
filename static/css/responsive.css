@@ -1,0 +1,125 @@
+
+@media (max-width: 1100px){
+  .bc-leader-layout{grid-template-columns:1fr}
+  .bc-leader-rail{
+    position:static;display:flex;overflow-x:auto;gap:6px;padding:8px;white-space:nowrap
+  }
+  .bc-rail-brand{display:none}
+  .bc-rail-link{flex:0 0 auto;padding:8px 11px}
+  .party-shell-layout{grid-template-columns:1fr}
+  .party-layout-focused{grid-template-columns:190px minmax(0,1fr)}
+  .public-result-layout{grid-template-columns:1fr}
+}
+@media (max-width: 768px){
+  .container{width:min(calc(100% - 16px),100%);max-width:none}
+  .bc-navbar{top:0;width:100%;margin:0 0 12px}
+  .bc-navbar-inner{min-height:54px;padding:7px 10px}
+  .bc-seal{width:32px;height:32px;font-size:1.05rem}
+  .bc-brand-name{font-size:1.12rem}
+  .bc-nav-actions{gap:2px}
+  .bc-nav-actions .btn{padding:.38rem .48rem;font-size:.76rem}
+  .bc-hero-card{padding:20px 18px}
+  .bc-workspace-header{padding:14px 15px;align-items:flex-start}
+  .bc-workspace-header .bc-title{font-size:1.38rem}
+  .bc-workspace-header .bc-subtitle{font-size:.8rem}
+  .bc-choice-grid{grid-template-columns:1fr}
+  .bc-member-result{grid-template-columns:minmax(0,1fr) auto}
+  .bc-member-result .class-badge{display:none}
+  .bc-metrics{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+  .bc-metric{min-height:64px;padding:8px 9px;border-radius:11px}
+  .bc-metric-label{font-size:.64rem;line-height:1.2}
+  .bc-metric-value{font-size:1.2rem}
+  .public-result-layout{gap:10px}
+  .public-squad-panel .card-header{align-items:flex-start}
+  .public-squad-panel .card-header .small{display:none}
+  .public-squad-tabs{padding-bottom:3px}
+  .public-party-grid{grid-template-columns:repeat(5,112px);grid-template-rows:repeat(6,72px);min-width:588px}
+  .public-attendance-body{padding:9px}
+  .party-layout-focused{grid-template-columns:1fr}
+  .party-pool{position:static;max-height:none}
+  .party-pool-drop{display:flex;overflow-x:auto;padding:8px}
+  .party-pool .member-chip{flex:0 0 132px;height:44px}
+  .party-topbar{display:grid;gap:8px;padding:10px}
+  .party-topbar-copy{display:none}
+  .party-team-switch{justify-content:flex-start;width:100%}
+  .party-team-switch .nav-link{padding:7px 12px;min-height:36px}
+  .party-grid{grid-template-columns:repeat(5,120px);grid-template-rows:repeat(6,76px);min-width:632px}
+  .party-board-body{padding:9px}
+  .party-board-header{padding:10px 11px}
+  .chip-name{font-size:.75rem}
+  .chip-meta{font-size:.61rem}
+  .chip-note-indicator{font-size:.52rem}
+  .chip-note-btn{font-size:.52rem;padding:2px 4px}
+  .bc-filter-bar .row>[class*="col-"]{width:100%}
+  .attendance-table-responsive{overflow:visible}
+  .attendance-table{display:block;width:100%}
+  .attendance-table thead{display:none}
+  .attendance-table tbody{display:grid;gap:6px}
+  .attendance-table tbody tr{
+    display:grid;grid-template-columns:minmax(0,1fr) 146px 46px;grid-template-areas:
+      "name status save"
+      "class updated save";
+    align-items:center;gap:2px 8px;padding:8px 9px;border:1px solid var(--line);border-radius:10px;background:var(--surface-strong)!important
+  }
+  .attendance-table td{display:block;padding:0!important;border:0!important;min-width:0}
+  .attendance-name-cell{grid-area:name}
+  .attendance-class-cell{grid-area:class}
+  .attendance-table td[data-label="Trạng thái"]{grid-area:status}
+  .attendance-updated-cell{grid-area:updated;font-size:.68rem!important}
+  .attendance-table td:last-child{grid-area:save}
+  .attendance-name-text{font-size:.82rem;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .attendance-mobile-class{display:none!important}
+  .attendance-class-cell .badge{font-size:.62rem;padding:3px 6px}
+  .attendance-table .status-select{min-width:0;width:100%;height:34px;min-height:34px;padding:3px 1.9rem 3px 7px;font-size:.68rem}
+  .attendance-table .save-btn{width:46px;min-width:46px;padding:.35rem .25rem;font-size:.68rem}
+  .events-table-responsive,.feedback-events-table-responsive,.member-request-table-responsive{overflow-x:auto!important}
+  .events-table,.feedback-events-table,.member-request-table{min-width:760px}
+  .bc-table-card{overflow:hidden}
+}
+@media (max-width: 480px){
+  .bc-brand-name{display:none}
+  .bc-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .bc-metric{min-height:68px}
+  .bc-title{font-size:1.65rem}
+  .bc-workspace-header{display:block}
+  .bc-workspace-header .bc-actions-row{margin-top:10px}
+  .attendance-table tbody tr{
+    grid-template-columns:minmax(0,1fr) 138px 42px;
+  }
+  .attendance-table .save-btn{width:42px;min-width:42px}
+}
+
+@media (max-width: 400px){
+  .attendance-table tbody tr{
+    grid-template-columns:minmax(0,1fr) 42px;
+    grid-template-areas:
+      "name save"
+      "class updated"
+      "status status";
+    row-gap:5px;
+  }
+  .attendance-table td[data-label="Trạng thái"]{margin-top:2px}
+  .attendance-table .status-select{font-size:.72rem}
+}
+
+
+@media (max-width:767.98px){
+  .bc-hero-action-stack{
+    width:100%;
+    grid-template-columns:1fr;
+  }
+  .bc-page-action-stack{
+    width:min(100%,280px);
+    grid-template-columns:1fr;
+    margin-inline:auto;
+  }
+}
+
+@media (max-width:768px){
+  .bc-request-filter{display:grid;gap:12px}
+  .bc-request-filter .bc-pill-tabs{flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px}
+  .bc-request-filter .btn{flex:0 0 auto}
+  .bc-request-modal{border-radius:16px 16px 0 0}
+  .modal-dialog-scrollable{margin:0;min-height:100%;align-items:flex-end}
+  .member-request-table{min-width:860px}
+}

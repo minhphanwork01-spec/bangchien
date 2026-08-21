@@ -1,0 +1,253 @@
+/* ══════════════════════════════════════════════════════════════
+   BangCheck — "Mực & Ấn" (Ink & Seal)
+   Một ngôn ngữ thiết kế, hai chế độ màu qua token swap:
+   - light: giấy dó, mực đen, ấn chu sa
+   - dark:  sơn mài, mực sáng, chu sa + vàng kim
+   Signature: hệ thống ấn triện (seal) — brand mark, marker section,
+   con dấu trạng thái. Cấu trúc phân tách bằng nét kẻ (line) thay vì
+   shadow/glassmorphism.
+   ══════════════════════════════════════════════════════════════ */
+
+:root {
+  --font-ui: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Cormorant Garamond", "Noto Serif", Georgia, serif;
+
+  /* Giấy */
+  --bg: #ece5d3;
+  --surface: #f7f2e5;
+  --surface-strong: #fbf8ef;
+  --surface-soft: #f0ead9;
+  --line: #d4c9ac;
+  --line-strong: #ab9d78;
+  --ink: #2b2620;
+  --muted: #7d7460;
+
+  /* Ấn chu sa — accent duy nhất của hệ */
+  --accent: #a83228;
+  --accent-deep: #8a281f;
+  --accent-soft: #eddcd4;
+  --on-accent: #fbf8ef;
+
+  /* Ngọc — màu cấu trúc phụ (điều hướng, info), không tranh với chu sa */
+  --jade: #5a7d72;
+  --jade-deep: #46655c;
+  --jade-soft: #e2eae2;
+
+  --gold: #8f6f2a;
+  --success: #47765a;
+  --danger: #a33c31;
+  --warning: #8f6f2a;
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --shadow: 0 1px 2px rgba(64, 52, 28, .08);
+
+  /* Màu 7 phái (giữ nguyên hệ màu game) */
+  --class-toai-mong: #7fd7e8;
+  --class-huyet-ha: #df5758;
+  --class-thiet-y: #e4b23e;
+  --class-to-van: #e78ab5;
+  --class-long-ngam: #5abd70;
+  --class-than-tuong: #2f86a6;
+  --class-cuu-linh: #9568d1;
+
+  --paper-noise:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+}
+
+/* Sơn mài — cùng ngôn ngữ, đổi vật liệu */
+html[data-theme="dark"] {
+  --bg: #171310;
+  --surface: #201b15;
+  --surface-strong: #282219;
+  --surface-soft: #1c1712;
+  --line: #3b3324;
+  --line-strong: #5b4d31;
+  --ink: #e9e1cd;
+  --muted: #a2967c;
+
+  --accent: #c65a4c;
+  --accent-deep: #d96f60;
+  --accent-soft: #39231e;
+  --on-accent: #fbf1e6;
+
+  --jade: #7fa294;
+  --jade-deep: #97b8ab;
+  --jade-soft: #202b26;
+
+  --gold: #c9a45c;
+  --success: #74ab88;
+  --danger: #d0685c;
+  --warning: #c9a45c;
+
+  --shadow: 0 1px 3px rgba(0, 0, 0, .4);
+}
+
+* { box-sizing: border-box }
+html { min-height: 100%; overflow-x: hidden }
+body.bc-app {
+  min-height: 100dvh; margin: 0; overflow-x: hidden;
+  color: var(--ink); font-family: var(--font-ui);
+  background-color: var(--bg);
+  background-image: var(--paper-noise);
+  transition: background-color .2s ease, color .2s ease;
+}
+a { color: var(--jade-deep); text-decoration: none }
+a:hover { color: var(--accent) }
+img { max-width: 100% }
+.container { width: min(calc(100% - 32px), 1320px); max-width: 1320px; padding: 0 }
+.bc-muted, .text-muted { color: var(--muted) !important }
+.min-w-0 { min-width: 0 }
+
+/* ── Navbar: thanh mực full-width, nét kẻ đôi bên dưới ── */
+.bc-navbar { position: sticky; top: 0; z-index: 30; width: 100%; margin: 0 0 22px }
+.bc-navbar-inner {
+  min-height: 60px; padding: 8px 20px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line-strong);
+  box-shadow: 0 3px 0 -2px var(--line);
+  display: flex; align-items: center; justify-content: space-between; gap: 14px;
+  width: 100%; max-width: 1700px; margin: 0 auto;
+}
+.bc-brand { display: inline-flex; align-items: center; gap: 10px; color: var(--ink) }
+.bc-brand:hover { color: var(--ink) }
+/* Ấn triện — brand mark */
+.bc-seal {
+  width: 38px; height: 38px; flex: 0 0 auto;
+  display: grid; place-items: center;
+  background: var(--accent); color: var(--on-accent);
+  border-radius: var(--radius-sm);
+  box-shadow: inset 0 0 0 2px var(--on-accent), inset 0 0 0 3px var(--accent);
+  font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; line-height: 1;
+}
+.bc-brand-name { font-family: var(--font-display); font-size: 1.45rem; font-weight: 700; letter-spacing: .01em }
+.bc-nav-actions { display: flex; align-items: center; gap: 6px; white-space: nowrap }
+.bc-dropdown { border: 1px solid var(--line-strong); border-radius: var(--radius-md); padding: 4px; background: var(--surface-strong); box-shadow: var(--shadow) }
+.bc-dropdown .dropdown-item { border-radius: var(--radius-sm); padding: .5rem .7rem; color: var(--ink) }
+.bc-dropdown .dropdown-item:hover { background: var(--surface-soft); color: var(--accent) }
+.bc-dropdown .dropdown-divider { border-color: var(--line) }
+
+/* ── Buttons ── */
+.btn { border-radius: var(--radius-md); font-weight: 600; white-space: nowrap; transition: transform .12s ease, background-color .12s ease, border-color .12s ease, color .12s ease }
+.btn:active { transform: translateY(1px) }
+.btn-bc-primary, .btn-primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent) }
+.btn-bc-primary:hover, .btn-primary:hover,
+.btn-bc-primary:focus, .btn-primary:focus { background: var(--accent-deep); border-color: var(--accent-deep); color: var(--on-accent) }
+.btn-bc-ghost { border-color: transparent; color: var(--ink); background: transparent }
+.btn-bc-ghost:hover { background: var(--surface-soft); color: var(--accent) }
+.btn-outline-primary { border-color: var(--line-strong); color: var(--ink); background: transparent }
+.btn-outline-primary:hover { background: var(--ink); border-color: var(--ink); color: var(--bg) }
+.btn-outline-secondary { border-color: var(--line-strong); color: var(--muted); background: transparent }
+.btn-outline-secondary:hover { background: var(--surface-soft); border-color: var(--line-strong); color: var(--ink) }
+.btn-warning { background: var(--gold); border-color: var(--gold); color: var(--bg) }
+.btn-warning:hover { filter: brightness(.92); color: var(--bg) }
+.btn-outline-warning { border-color: var(--gold); color: var(--gold) }
+.btn-secondary { background: var(--muted); border-color: var(--muted); color: var(--bg) }
+.btn-link { color: var(--jade-deep) }
+
+/* ── Form ── */
+.form-control, .form-select {
+  min-height: 42px; border: 1px solid var(--line-strong); border-radius: var(--radius-md);
+  background: var(--surface-strong); color: var(--ink);
+}
+.form-control::placeholder { color: var(--muted); opacity: .8 }
+.form-control:focus, .form-select:focus {
+  background: var(--surface-strong); color: var(--ink);
+  border-color: var(--accent); box-shadow: 0 0 0 3px rgba(168, 50, 40, .18); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+.form-label { font-weight: 600; color: var(--ink) }
+
+/* ── Panels: trang sách, phân tách bằng nét kẻ ── */
+.card, .bc-panel, .bc-table-card, .bc-filter-bar {
+  background: var(--surface); border: 1px solid var(--line-strong);
+  border-radius: var(--radius-lg); box-shadow: var(--shadow); overflow: hidden;
+  color: var(--ink);
+}
+.card-header, .bc-panel-header {
+  padding: 13px 18px; background: transparent;
+  border-bottom: 1px solid var(--line-strong);
+  box-shadow: 0 2px 0 -1px var(--line);          /* nét kẻ đôi */
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.card-body, .bc-panel-body { padding: 18px }
+.bc-page { display: grid; gap: 16px; min-width: 0; padding-bottom: 32px }
+.bc-actions-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap }
+
+/* ── Typography ── */
+.bc-title {
+  margin: 0; font-family: var(--font-display);
+  font-size: clamp(1.9rem, 3.6vw, 3rem); font-weight: 700;
+  letter-spacing: .005em; line-height: 1.08;
+}
+.bc-section-title { margin: 0; font-family: var(--font-display); font-size: 1.45rem; font-weight: 700 }
+.bc-subtitle { margin: .35rem 0 0; color: var(--muted); line-height: 1.55 }
+
+/* Kicker: nhãn nhỏ có dấu triện vuông, không pill */
+.bc-kicker {
+  display: inline-flex; align-items: center; gap: 7px;
+  margin-bottom: 6px; padding: 0;
+  background: transparent; border-radius: 0;
+  color: var(--muted); font-size: .74rem; font-weight: 700;
+  letter-spacing: .14em; text-transform: uppercase;
+}
+.bc-kicker::before { content: ""; width: 9px; height: 9px; background: var(--accent); border-radius: 1px; flex: 0 0 auto }
+
+/* ── Hero: mặt giấy có triện góc, không ảnh nền ── */
+.bc-hero-card {
+  position: relative; padding: 28px 34px;
+  border: 1px solid var(--line-strong); border-radius: var(--radius-lg);
+  background: var(--surface); box-shadow: var(--shadow); overflow: hidden;
+}
+.bc-hero-card::after {
+  content: ""; position: absolute; right: 18px; bottom: 14px;
+  width: 34px; height: 34px; border: 2px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  border-radius: 2px; transform: rotate(-6deg); pointer-events: none;
+}
+.bc-workspace-header {
+  padding: 18px 22px; border: 1px solid var(--line-strong); border-radius: var(--radius-lg);
+  background: var(--surface); box-shadow: var(--shadow);
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+}
+.bc-workspace-header .bc-title { font-size: clamp(1.5rem, 2.3vw, 2rem) }
+.bc-workspace-header .bc-subtitle { font-size: .92rem }
+
+/* ── Badges & notes ── */
+.badge { border-radius: var(--radius-sm); font-weight: 600 }
+.bc-badge-soft { background: var(--surface-soft); color: var(--muted); border: 1px solid var(--line) }
+.bc-soft-note { padding: 12px 14px; border: 1px solid var(--line); border-left: 3px solid var(--gold); border-radius: var(--radius-md); background: var(--surface-soft); color: var(--muted) }
+.bc-empty { text-align: center; padding: 28px; color: var(--muted) }
+.bc-empty-mark {
+  width: 42px; height: 42px; margin: 0 auto 10px; border-radius: var(--radius-sm);
+  display: grid; place-items: center;
+  border: 1px solid var(--line-strong); color: var(--muted); font-weight: 700; background: var(--surface-strong);
+}
+.bc-count-dot { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: var(--radius-sm); background: var(--accent); color: var(--on-accent); font-size: .74rem; font-weight: 700 }
+.alert { border-radius: var(--radius-md) }
+
+/* ── Table ── */
+.table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch }
+.table { margin: 0; color: var(--ink); --bs-table-bg: transparent; --bs-table-color: var(--ink) }
+.table > :not(caption) > * > * { padding: .7rem .8rem; border-color: var(--line); vertical-align: middle; color: var(--ink); background: transparent }
+.table thead th { background: var(--surface-soft); color: var(--muted); font-size: .74rem; text-transform: uppercase; letter-spacing: .07em; white-space: nowrap; border-bottom: 1px solid var(--line-strong) }
+.status-select { min-width: 150px; padding-right: 2.2rem }
+
+/* Con dấu trạng thái */
+.status-badge-joined { border-color: var(--success); color: var(--success) }
+.status-badge-absent { border-color: var(--danger); color: var(--danger) }
+.status-badge-no_response { border-color: var(--line-strong); color: var(--muted) }
+.toast { border-radius: var(--radius-md) }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important }
+}
+
+/* Theme toggle */
+.bc-theme-toggle {
+  width: 36px; height: 36px; padding: 0; display: grid; place-items: center;
+  border: 1px solid var(--line-strong); border-radius: var(--radius-md);
+  background: transparent; color: var(--muted); font-size: 1rem; line-height: 1; cursor: pointer;
+}
+.bc-theme-toggle:hover { color: var(--ink); background: var(--surface-soft) }
+.bc-theme-toggle .icon-dark, html[data-theme="dark"] .bc-theme-toggle .icon-light { display: none }
+html[data-theme="dark"] .bc-theme-toggle .icon-dark { display: block }
