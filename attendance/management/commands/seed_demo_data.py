@@ -94,9 +94,11 @@ class Command(BaseCommand):
         event_title = f"Bang Chiến {next_saturday.strftime('%d/%m/%Y')}"
 
         event, event_created = WarEvent.objects.get_or_create(
+            event_type=WarEvent.EventType.WAR,
             event_date=next_saturday,
             defaults={
                 "title": event_title,
+                "event_type": WarEvent.EventType.WAR,
                 "status": WarEvent.Status.OPEN,
                 "is_current": True,
                 "deadline_at": timezone.make_aware(
@@ -115,11 +117,36 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS(f"📅 WarEvent tạo mới: {event}"))
         else:
             # Đặt là current nếu chưa phải
-            if not event.is_current or event.status != WarEvent.Status.OPEN:
+            if not event.is_current or event.status != WarEvent.Status.OPEN or event.event_type != WarEvent.EventType.WAR:
+                event.event_type = WarEvent.EventType.WAR
                 event.is_current = True
                 event.status = WarEvent.Status.OPEN
                 event.save()
             self.stdout.write(f"📅 WarEvent đã tồn tại: {event}")
+
+        # ── Tạo Scrim demo riêng ──────────────────────
+        scrim_date = next_saturday - datetime.timedelta(days=2)
+        scrim_title = f"Scrim {scrim_date.strftime('%d/%m/%Y')}"
+        scrim_event, scrim_created = WarEvent.objects.get_or_create(
+            event_type=WarEvent.EventType.SCRIM,
+            event_date=scrim_date,
+            defaults={
+                "title": scrim_title,
+                "status": WarEvent.Status.OPEN,
+                "is_current": True,
+                "deadline_at": timezone.make_aware(
+                    datetime.datetime.combine(scrim_date, datetime.time(20, 0))
+                ),
+            },
+        )
+        if scrim_created:
+            self.stdout.write(self.style.SUCCESS(f"🎯 Scrim tạo mới: {scrim_event}"))
+        else:
+            if not scrim_event.is_current or scrim_event.status != WarEvent.Status.OPEN:
+                scrim_event.is_current = True
+                scrim_event.status = WarEvent.Status.OPEN
+                scrim_event.save()
+            self.stdout.write(f"🎯 Scrim đã tồn tại: {scrim_event}")
 
         # ── Tạo một số Attendance mẫu ────────────────
         all_members = list(Member.objects.filter(active=True))
