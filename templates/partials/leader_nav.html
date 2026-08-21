@@ -1,0 +1,17 @@
+{% load static %}
+<aside class="bc-leader-rail">
+  <div class="bc-rail-brand">
+    <div class="bc-rail-title">Công cụ leader</div>
+  </div>
+  <a href="{% url 'leader_dashboard' %}" class="bc-rail-link {% if active == 'dashboard' %}active{% endif %}">Dashboard</a>
+  <a href="{% url 'leader_attendance_history' %}" class="bc-rail-link {% if active == 'history' %}active{% endif %}">Chuyên cần</a>
+  <a href="{% url 'leader_admin_log' %}" class="bc-rail-link {% if active == 'adminlog' %}active{% endif %}">Nhật ký</a>
+  <a href="{% url 'leader_events' %}" class="bc-rail-link {% if active == 'events' %}active{% endif %}">Sự kiện</a>
+  <a href="{% url 'leader_party_board' %}" class="bc-rail-link {% if active == 'party' %}active{% endif %}">Đội hình</a>
+  <a href="{% url 'leader_feedback_events' %}" class="bc-rail-link {% if active == 'feedback' %}active{% endif %}">Feedback</a>
+  <a href="{% url 'leader_member_requests' %}" class="bc-rail-link {% if active == 'requests' %}active{% endif %}">
+    <span>Yêu cầu thành viên</span>
+    {% if pending_requests_count %}<span class="bc-count-dot">{{ pending_requests_count }}</span>{% endif %}
+  </a>
+  <a href="/admin/" class="bc-rail-link">Django Admin</a>
+</aside>

@@ -1,13 +1,17 @@
-<div class="member-chip member-chip-readonly class-{{ m.class_slug }}">
-  {% if m.variant_icon %}
-    <div class="chip-icon" title="{{ m.class_variant }}">{{ m.variant_icon }}</div>
-  {% endif %}
+<div class="member-chip member-chip-readonly class-{{ m.class_slug }} {% if m.strategy_note %}has-strategy-note{% endif %}"
+     data-strategy-note="{{ m.strategy_note|default:'' }}"
+     onclick="showMobileStrategyNote(event, this)">
 
   <div class="chip-main">
-    <div class="chip-name" title="{{ m.display_name }}">{{ m.display_name }}</div>
+    <div class="chip-topline">
+      <div class="chip-name" title="{{ m.display_name }}">{{ m.display_name }}</div>
+      {% if m.strategy_note %}
+        <span class="chip-note-indicator" title="{{ m.strategy_note }}">Note</span>
+      {% endif %}
+    </div>
 
-    {% if m.strategy_note %}
-      <div class="chip-strategy-note" title="{{ m.strategy_note }}">{{ m.strategy_note }}</div>
+    {% if m.class_label %}
+      <div class="chip-meta">{{ m.class_label }}</div>
     {% endif %}
   </div>
 </div>
