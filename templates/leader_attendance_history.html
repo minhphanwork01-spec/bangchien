@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Chuyên cần · BangCheck{% endblock %}
+
+{% block content %}
+<div class="bc-leader-layout">
+  {% include "partials/leader_nav.html" with active="history" %}
+
+  <div class="bc-page">
+    <div class="bc-workspace-header">
+      <div>
+        <h1 class="bc-title">Chuyên cần</h1>
+        <p class="bc-subtitle">{{ window }} trận bang chiến gần nhất đã diễn ra · cột trái là trận mới nhất</p>
+      </div>
+    </div>
+
+    {% if not events %}
+      <section class="bc-panel"><div class="bc-panel-body bc-empty">
+        <div class="bc-empty-mark">–</div>
+        Chưa có trận bang chiến nào diễn ra xong để thống kê.
+      </div></section>
+    {% else %}
+    <section class="bc-table-card">
+      <header class="bc-panel-header">
+        <h2 class="bc-section-title fs-5">Ma trận điểm danh</h2>
+        <div class="history-legend">
+          <span><i class="hcell hcell-joined"></i> Tham gia</span>
+          <span><i class="hcell hcell-absent"></i> Báo vắng</span>
+          <span><i class="hcell hcell-none"></i> Im lặng</span>
+          <span><i class="hcell hcell-before"></i> Chưa vào bang</span>
+        </div>
+      </header>
+      <div class="table-responsive">
+        <table class="table history-table">
+          <thead>
+            <tr>
+              <th class="history-name-col">Thành viên</th>
+              {% for ev in events %}
+                <th class="history-ev-col" title="{{ ev.title }}">{{ ev.event_date|date:"d/m" }}</th>
+              {% endfor %}
+              <th class="history-sum-col">Tham gia</th>
+              <th class="history-sum-col">Tỷ lệ</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in ranked %}
+            <tr>
+              <td class="history-name-col">
+                <span class="history-rank">{{ row.rank }}</span>
+                <span class="fw-semibold">{{ row.member.display_name }}</span>
+                <span class="class-badge ms-1">{{ row.member.class_label }}</span>
+              </td>
+              {% for cell in row.cells %}
+                <td class="history-cell"><i class="hcell hcell-{{ cell|slugify }}"
+                  title="{% if cell == 'joined' %}Tham gia{% elif cell == 'absent' %}Báo vắng{% elif cell == 'no_response' %}Im lặng{% else %}Chưa vào bang{% endif %}"></i></td>
+              {% endfor %}
+              <td class="history-sum-col fw-bold">{{ row.joined }}/{{ row.denom }}</td>
+              <td class="history-sum-col">{{ row.pct }}%</td>
+            </tr>
+            {% endfor %}
+            {% for row in newcomers %}
+            <tr class="history-newcomer">
+              <td class="history-name-col">
+                <span class="history-rank history-rank-new">Mới</span>
+                <span class="fw-semibold">{{ row.member.display_name }}</span>
+                <span class="class-badge ms-1">{{ row.member.class_label }}</span>
+              </td>
+              {% for cell in row.cells %}
+                <td class="history-cell"><i class="hcell hcell-{{ cell|slugify }}"></i></td>
+              {% endfor %}
+              <td class="history-sum-col fw-bold">{{ row.joined }}/{{ row.denom }}</td>
+              <td class="history-sum-col">{% if row.pct is not None %}{{ row.pct }}%{% else %}–{% endif %}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <p class="bc-muted small mb-0">
+      Xếp theo số trận tham gia, đồng hạng xét tỷ lệ. Thành viên chưa đủ {{ min_ranked }} trận trong
+      mẫu số được xếp khu "Mới", chưa tính hạng. "Báo vắng" và "im lặng" đều không tính điểm,
+      nhưng vắng liên tiếp nhiều trận (dải đỏ/xám liền nhau) là tín hiệu nên hỏi thăm.
+    </p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

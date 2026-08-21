@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Feedback {{ event.title }} · BangCheck{% endblock %}
+
+{% block content %}
+<div class="bc-leader-layout">
+  {% include "partials/leader_nav.html" with active="feedback" %}
+
+  <section class="bc-page">
+    <div class="bc-workspace-header">
+      <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+        <div>
+          <span class="bc-kicker">Feedback detail</span>
+          <h1 class="bc-title">{{ event.title }}</h1>
+          <p class="bc-subtitle">{{ event.event_date|date:"l, d/m/Y" }} · {{ feedbacks|length }} feedback</p>
+        </div>
+        <a href="{% url 'leader_feedback_events' %}" class="btn btn-outline-secondary btn-sm">Danh sách event</a>
+      </div>
+    </div>
+
+    <div class="row g-3">
+      {% for fb in feedbacks %}
+      <div class="col-12">
+        <article class="card feedback-card">
+          <div class="card-body">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+              <div class="fw-bold text-primary">Feedback #{{ forloop.revcounter }}</div>
+              <div class="small bc-muted">
+                Gửi: {{ fb.created_at|date:"H:i d/m/Y" }} · Cập nhật: {{ fb.updated_at|date:"H:i d/m/Y" }}
+              </div>
+            </div>
+            <div class="feedback-content">{{ fb.content|linebreaksbr }}</div>
+          </div>
+        </article>
+      </div>
+      {% empty %}
+      <div class="col-12">
+        <div class="bc-empty bc-panel">
+          <div class="bc-empty-mark">F</div>
+          <p class="mb-0">Event này chưa có feedback.</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}

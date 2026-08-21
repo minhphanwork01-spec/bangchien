@@ -1,119 +1,279 @@
 {% extends "base.html" %}
-{% block title %}Yêu cầu thành viên – BangCheck{% endblock %}
-{% block body_class %}bg-light{% endblock %}
+{% block title %}Yêu cầu thành viên · BangCheck{% endblock %}
 
 {% block content %}
-<div class="row">
+<div class="bc-leader-layout">
+  {% include "partials/leader_nav.html" with active="requests" %}
 
-  <!-- Sidebar -->
-  <div class="col-12 col-md-2 mb-3 mb-md-0">
-    <div class="list-group list-group-flush shadow-sm rounded bg-white">
-      <a href="{% url 'leader_dashboard' %}" class="list-group-item list-group-item-action">📊 Dashboard</a>
-      <a href="{% url 'leader_events' %}" class="list-group-item list-group-item-action">📅 Sự kiện</a>
-      <a href="{% url 'leader_party_board' %}" class="list-group-item list-group-item-action text-warning">🧩 Xếp đội hình</a>
-      <a href="{% url 'leader_member_requests' %}" class="list-group-item list-group-item-action active d-flex justify-content-between align-items-center">
-        📋 Yêu cầu thành viên
-        {% if pending_requests_count %}<span class="badge bg-danger">{{ pending_requests_count }}</span>{% endif %}
-      </a>
-    </div>
-  </div>
-
-  <!-- Main -->
-  <div class="col-12 col-md-10">
-
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h5 class="fw-bold mb-0">📋 Yêu cầu thêm thành viên</h5>
+  <section class="bc-page">
+    <header class="bc-workspace-header">
+      <div>
+        <span class="bc-kicker">Yêu cầu thành viên</span>
+        <h1 class="bc-title">Duyệt yêu cầu</h1>
+        <p class="bc-subtitle">Quản lý yêu cầu tạo mới và chỉnh thông tin trong cùng một nơi.</p>
+      </div>
       {% if pending_requests_count %}
-        <span class="badge bg-danger fs-6">{{ pending_requests_count }} chờ duyệt</span>
+        <span class="badge text-bg-danger fs-6">{{ pending_requests_count }} chờ duyệt</span>
       {% endif %}
-    </div>
+    </header>
 
-    <!-- Status filter tabs -->
-    <div class="btn-group mb-3">
-      <a href="?status=pending"
-         class="btn btn-sm {% if status_filter == 'pending' %}btn-danger{% else %}btn-outline-danger{% endif %}">
-        Chờ duyệt
-      </a>
-      <a href="?status=approved"
-         class="btn btn-sm {% if status_filter == 'approved' %}btn-success{% else %}btn-outline-success{% endif %}">
-        Đã duyệt
-      </a>
-      <a href="?status=rejected"
-         class="btn btn-sm {% if status_filter == 'rejected' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">
-        Từ chối
-      </a>
-      <a href="?"
-         class="btn btn-sm {% if not status_filter %}btn-dark{% else %}btn-outline-dark{% endif %}">
-        Tất cả
-      </a>
-    </div>
+    <section class="bc-filter-bar bc-request-filter">
+      <div class="bc-filter-group">
+        <span class="bc-filter-label">Loại yêu cầu</span>
+        <div class="bc-pill-tabs" role="group" aria-label="Lọc theo loại yêu cầu">
+          <a href="?status={{ status_filter }}" class="btn btn-sm {% if not type_filter %}btn-bc-primary{% else %}btn-outline-primary{% endif %}">Tất cả</a>
+          <a href="?status={{ status_filter }}&type=add" class="btn btn-sm {% if type_filter == 'add' %}btn-bc-primary{% else %}btn-outline-primary{% endif %}">Tạo mới</a>
+          <a href="?status={{ status_filter }}&type=update" class="btn btn-sm {% if type_filter == 'update' %}btn-bc-primary{% else %}btn-outline-primary{% endif %}">Chỉnh thông tin</a>
+        </div>
+      </div>
+
+      <div class="bc-filter-group">
+        <span class="bc-filter-label">Trạng thái</span>
+        <div class="bc-pill-tabs" role="group" aria-label="Lọc theo trạng thái">
+          <a href="?status=pending{% if type_filter %}&type={{ type_filter }}{% endif %}" class="btn btn-sm {% if status_filter == 'pending' %}btn-danger{% else %}btn-outline-danger{% endif %}">Chờ duyệt</a>
+          <a href="?status=approved{% if type_filter %}&type={{ type_filter }}{% endif %}" class="btn btn-sm {% if status_filter == 'approved' %}btn-success{% else %}btn-outline-success{% endif %}">Đã duyệt</a>
+          <a href="?status=rejected{% if type_filter %}&type={{ type_filter }}{% endif %}" class="btn btn-sm {% if status_filter == 'rejected' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">Từ chối</a>
+          <a href="?status={% if type_filter %}&type={{ type_filter }}{% endif %}" class="btn btn-sm {% if not status_filter %}btn-bc-primary{% else %}btn-outline-primary{% endif %}">Tất cả</a>
+        </div>
+      </div>
+    </section>
 
     {% if requests %}
-    <div class="card shadow-sm border-0">
-      <div class="card-body p-0">
-        <table class="table table-hover mb-0 align-middle">
-          <thead class="table-dark">
-            <tr>
-              <th>Tên yêu cầu</th>
-              <th>Phái</th>
-              <th>Ghi chú</th>
-              <th>Trạng thái</th>
-              <th>Gửi lúc</th>
-              <th style="width:140px"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for req in requests %}
-            <tr>
-              <td class="fw-semibold">{{ req.requested_name }}</td>
-              <td>{{ req.class_name|default:"–" }}{% if req.class_variant %} · {{ req.class_variant }}{% endif %}</td>
-              <td class="small text-muted">{{ req.note|default:"–"|truncatechars:50 }}</td>
-              <td>
-                {% if req.status == 'pending' %}
-                  <span class="badge bg-warning text-dark">Chờ duyệt</span>
-                {% elif req.status == 'approved' %}
-                  <span class="badge bg-success">Đã duyệt</span>
-                {% else %}
-                  <span class="badge bg-secondary">Từ chối</span>
-                {% endif %}
-              </td>
-              <td class="small text-muted">{{ req.created_at|date:"d/m H:i" }}</td>
-              <td>
-                {% if req.status == 'pending' %}
-                <div class="d-flex gap-1">
-                  <!-- Approve: tạo Member từ request (BR4) -->
-                  <form method="POST" action="{% url 'approve_member_request' req.pk %}"
-                        onsubmit="return confirm('Duyệt và thêm \'{{ req.requested_name }}\' vào danh sách?')">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-success btn-sm">✅ Duyệt</button>
-                  </form>
-                  <!-- Reject -->
-                  <form method="POST" action="{% url 'reject_member_request' req.pk %}"
-                        onsubmit="return confirm('Từ chối yêu cầu của \'{{ req.requested_name }}\'?')">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-outline-danger btn-sm">✕</button>
-                  </form>
+      <section class="bc-panel bc-table-card">
+        <div class="table-responsive member-request-table-responsive">
+          <table class="table table-hover mb-0 align-middle member-request-table">
+            <thead>
+              <tr>
+                <th>Loại</th>
+                <th>Thông tin hiện tại</th>
+                <th>Thông tin đề xuất</th>
+                <th>Trạng thái</th>
+                <th>Theo dõi</th>
+                <th class="text-end">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for req in requests %}
+              <tr>
+                <td>
+                  {% if req.request_type == 'update' %}
+                    <span class="badge bc-request-type bc-request-type-update">Chỉnh thông tin</span>
+                  {% else %}
+                    <span class="badge bc-request-type bc-request-type-add">Tạo mới</span>
+                  {% endif %}
+                </td>
+
+                <td>
+                  {% if req.request_type == 'update' %}
+                    <div class="fw-semibold">{{ req.original_name|default:req.target_member.display_name }}</div>
+                    <div class="small text-muted">
+                      {{ req.original_class_name|default:"Chưa chọn phái" }}
+                      {% if req.original_class_variant %} - {{ req.original_class_variant }}{% endif %}
+                    </div>
+                  {% else %}
+                    <span class="text-muted">Chưa có</span>
+                  {% endif %}
+                </td>
+
+                <td>
+                  <div class="fw-semibold">{{ req.requested_name }}</div>
+                  <div class="small text-muted">
+                    {{ req.class_name|default:"Chưa chọn phái" }}
+                    {% if req.class_variant %} - {{ req.class_variant }}{% endif %}
+                  </div>
+                  {% if req.request_type == 'update' %}
+                    <div class="bc-request-diff mt-1">
+                      {% if req.has_name_change %}<span>Tên thay đổi</span>{% endif %}
+                      {% if req.has_class_change %}<span>Phái thay đổi</span>{% endif %}
+                    </div>
+                  {% endif %}
+                </td>
+
+                <td>
+                  {% if req.status == 'pending' %}
+                    <span class="badge text-bg-warning">Chờ duyệt</span>
+                  {% elif req.status == 'approved' %}
+                    <span class="badge text-bg-success">Đã duyệt</span>
+                  {% else %}
+                    <span class="badge text-bg-secondary">Từ chối</span>
+                  {% endif %}
+                </td>
+
+                <td>
+                  <div class="small"><strong>Gửi:</strong> {{ req.created_at|date:"H:i d/m/Y" }}</div>
+                  {% if req.reviewed_at %}
+                    <div class="small text-muted">
+                      <strong>Xử lý:</strong> {{ req.reviewed_at|date:"H:i d/m/Y" }}
+                      {% if req.reviewed_by %} bởi {{ req.reviewed_by.get_username }}{% endif %}
+                    </div>
+                  {% endif %}
+                  {% if req.review_note %}
+                    <div class="small text-muted mt-1">{{ req.review_note }}</div>
+                  {% endif %}
+                </td>
+
+                <td class="text-end">
+                  {% if req.status == 'pending' %}
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-bc-primary"
+                      data-bs-toggle="modal"
+                      data-bs-target="#reviewRequest{{ req.pk }}"
+                    >
+                      Xem và xử lý
+                    </button>
+                  {% else %}
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-outline-secondary"
+                      data-bs-toggle="modal"
+                      data-bs-target="#reviewRequest{{ req.pk }}"
+                    >
+                      Xem
+                    </button>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {% for req in requests %}
+      <div class="modal fade" id="reviewRequest{{ req.pk }}" tabindex="-1" aria-labelledby="reviewRequestTitle{{ req.pk }}" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+          <div class="modal-content bc-request-modal">
+            <div class="modal-header">
+              <div>
+                <h2 class="modal-title fs-5" id="reviewRequestTitle{{ req.pk }}">
+                  {% if req.request_type == 'update' %}Chỉnh thông tin nhân vật{% else %}Tạo thành viên mới{% endif %}
+                </h2>
+                <p class="bc-muted small mb-0">
+                  {% if req.status == 'pending' %}Kiểm tra trước khi duyệt hoặc từ chối.{% else %}Yêu cầu này đã được xử lý.{% endif %}
+                </p>
+              </div>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+
+            <div class="modal-body">
+              {% if req.request_type == 'update' %}
+              <dl class="bc-change-summary">
+                <div>
+                  <dt>Tên nhân vật</dt>
+                  <dd>
+                    {{ req.original_name|default:req.target_member.display_name }}
+                    {% if req.has_name_change %}
+                      <span aria-hidden="true">→</span> {{ req.requested_name }}
+                    {% else %}
+                      <span class="text-muted">(không đổi)</span>
+                    {% endif %}
+                  </dd>
                 </div>
-                {% else %}
-                  <span class="text-muted small">–</span>
+                <div>
+                  <dt>Phái</dt>
+                  <dd>
+                    {{ req.original_class_name|default:"-" }}
+                    {% if req.original_class_variant %} - {{ req.original_class_variant }}{% endif %}
+                    {% if req.has_class_change %}
+                      <span aria-hidden="true">→</span>
+                      {{ req.class_name|default:"-" }}
+                      {% if req.class_variant %} - {{ req.class_variant }}{% endif %}
+                    {% else %}
+                      <span class="text-muted">(không đổi)</span>
+                    {% endif %}
+                  </dd>
+                </div>
+              </dl>
+              {% else %}
+              <dl class="bc-change-summary">
+                <div><dt>Tên nhân vật</dt><dd>{{ req.requested_name }}</dd></div>
+                <div>
+                  <dt>Phái</dt>
+                  <dd>{{ req.class_name|default:"-" }}{% if req.class_variant %} - {{ req.class_variant }}{% endif %}</dd>
+                </div>
+              </dl>
+              {% endif %}
+
+              {% if req.note %}
+              <div class="bc-soft-note mt-3">
+                <strong>Ghi chú người gửi</strong>
+                <div class="mt-1">{{ req.note }}</div>
+              </div>
+              {% endif %}
+
+              <div class="bc-request-audit mt-3">
+                <div><strong>Gửi lúc:</strong> {{ req.created_at|date:"H:i d/m/Y" }}</div>
+                {% if req.reviewed_at %}
+                  <div><strong>Xử lý lúc:</strong> {{ req.reviewed_at|date:"H:i d/m/Y" }}</div>
+                  <div><strong>Người xử lý:</strong> {{ req.reviewed_by.get_username|default:"-" }}</div>
                 {% endif %}
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
+                {% if req.review_note %}
+                  <div><strong>Ghi chú xử lý:</strong> {{ req.review_note }}</div>
+                {% endif %}
+              </div>
 
+              {% if req.status == 'pending' %}
+              <div class="mt-3">
+                <label class="form-label" for="reviewNote{{ req.pk }}">Ghi chú xử lý</label>
+                <textarea
+                  id="reviewNote{{ req.pk }}"
+                  class="form-control"
+                  rows="3"
+                  maxlength="1000"
+                  placeholder="Không bắt buộc"
+                ></textarea>
+              </div>
+              {% endif %}
+            </div>
+
+            <div class="modal-footer">
+              {% if req.status == 'pending' %}
+              <form method="POST" action="{% url 'reject_member_request' req.pk %}" class="me-auto js-review-form" data-note-source="reviewNote{{ req.pk }}">
+                {% csrf_token %}
+                <input type="hidden" name="review_note">
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                <button type="submit" class="btn btn-outline-danger">Từ chối</button>
+              </form>
+
+              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+
+              <form method="POST" action="{% url 'approve_member_request' req.pk %}" class="js-review-form" data-note-source="reviewNote{{ req.pk }}">
+                {% csrf_token %}
+                <input type="hidden" name="review_note">
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                <button type="submit" class="btn btn-success">Duyệt</button>
+              </form>
+              {% else %}
+                <button type="button" class="btn btn-bc-primary" data-bs-dismiss="modal">Đóng</button>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
     {% else %}
-    <div class="card shadow-sm border-0">
-      <div class="card-body text-center py-5 text-muted">
-        <div class="fs-1">📭</div>
-        <p class="mt-2">Không có yêu cầu nào {% if status_filter %}ở trạng thái này{% endif %}.</p>
-      </div>
-    </div>
+      <section class="bc-panel">
+        <div class="bc-empty">
+          <div class="bc-empty-mark">0</div>
+          <h2 class="bc-section-title">Không có yêu cầu phù hợp</h2>
+          <p class="bc-subtitle">Thử đổi bộ lọc loại hoặc trạng thái.</p>
+        </div>
+      </section>
     {% endif %}
-
-  </div>
+  </section>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.querySelectorAll(".js-review-form").forEach(function (form) {
+  form.addEventListener("submit", function () {
+    var sourceId = form.dataset.noteSource;
+    var source = document.getElementById(sourceId);
+    var hidden = form.querySelector('input[name="review_note"]');
+    if (source && hidden) hidden.value = source.value.trim();
+  });
+});
+</script>
 {% endblock %}

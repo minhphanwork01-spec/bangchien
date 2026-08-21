@@ -1,47 +1,39 @@
 {% extends "base.html" %}
-{% block title %}Yêu cầu thêm thành viên – BangCheck{% endblock %}
+{% block title %}Yêu cầu thêm thành viên · BangCheck{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-12 col-md-7 col-lg-5">
+<div class="bc-command-shell bc-page">
+  <section class="bc-hero-card text-center">
+    <span class="bc-kicker">Member request</span>
+    <h1 class="bc-title">Yêu cầu thêm thành viên</h1>
+    <p class="bc-subtitle mx-auto">Gửi tên nhân vật để leader xem xét. Sau khi được duyệt, bạn có thể chọn tên để báo danh.</p>
+  </section>
 
-    <div class="card shadow-sm">
-      <div class="card-header bg-dark text-white text-center py-3">
-        <h5 class="mb-0 fw-bold">📋 Yêu cầu thêm thành viên</h5>
+  <section class="bc-panel">
+    <div class="bc-panel-body">
+      <div class="bc-soft-note mb-3">
+        Yêu cầu sẽ được leader xem xét và duyệt. Form này không tự tạo member chính thức.
       </div>
-      <div class="card-body p-4">
 
-        <div class="alert alert-info small mb-3">
-          <strong>Lưu ý:</strong> Yêu cầu sẽ được leader xem xét và duyệt. Bạn sẽ được thêm vào danh sách thành viên sau khi được duyệt.
-        </div>
-
-        <form method="POST">
-          {% csrf_token %}
-
-          {% for field in form %}
-            <div class="mb-3">
-              <label class="form-label fw-semibold">{{ field.label }}</label>
-              {{ field }}
-              {% if field.errors %}
-                <div class="text-danger small mt-1">{{ field.errors.0 }}</div>
-              {% endif %}
-            </div>
-          {% endfor %}
-
-          <div class="d-grid gap-2">
-            <button type="submit" class="btn btn-primary btn-lg">
-              📤 Gửi yêu cầu
-            </button>
-            <a href="{% url 'checkin' %}" class="btn btn-outline-secondary">
-              ← Quay lại trang báo danh
-            </a>
+      <form method="POST">
+        {% csrf_token %}
+        {% for field in form %}
+          <div class="mb-3">
+            <label class="form-label">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}
+              <div class="text-danger small mt-1">{{ field.errors.0 }}</div>
+            {% endif %}
           </div>
-        </form>
+        {% endfor %}
 
-      </div>
+        <div class="d-grid gap-2">
+          <button type="submit" class="btn btn-bc-primary btn-lg">Gửi yêu cầu</button>
+          <a href="{% url 'checkin' %}" class="btn btn-outline-secondary">Quay lại trang báo danh</a>
+        </div>
+      </form>
     </div>
-
-  </div>
+  </section>
 </div>
 {% endblock %}
 

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Báo danh · BangCheck{% endblock %}
+
+{% block content %}
+<div class="bc-command-shell bc-page">
+  <section class="bc-hero-card text-center">
+    <span class="bc-kicker">Sự kiện hiện tại</span>
+    <h1 class="bc-title">Bang Chiến Mùa Xuân</h1>
+    <p class="bc-subtitle mx-auto">Chọn hoạt động để điểm danh. Bang chiến và Scrim dùng event riêng để dữ liệu không bị lẫn.</p>
+  </section>
+
+  <section class="bc-choice-grid">
+    <a class="bc-choice-card" href="{% if war_event %}{% url 'checkin_type' 'war' %}{% else %}#{% endif %}">
+      <span class="bc-choice-label">Bang chiến</span>
+      {% if war_event %}
+        <span class="bc-choice-desc">{{ war_event.title }} · {{ war_event.event_date|date:"d/m/Y" }}</span>
+        <span class="btn btn-warning w-100">Báo danh bang chiến</span>
+      {% else %}
+        <span class="bc-choice-desc">Chưa có event bang chiến đang mở.</span>
+        <span class="btn btn-outline-secondary disabled w-100">Chưa mở</span>
+      {% endif %}
+    </a>
+
+    <a class="bc-choice-card" href="{% if scrim_event %}{% url 'checkin_type' 'scrim' %}{% else %}#{% endif %}">
+      <span class="bc-choice-label">Scrim</span>
+      {% if scrim_event %}
+        <span class="bc-choice-desc">{{ scrim_event.title }} · {{ scrim_event.event_date|date:"d/m/Y" }}</span>
+        <span class="btn btn-bc-primary w-100">Báo danh scrim</span>
+      {% else %}
+        <span class="bc-choice-desc">Chưa có event scrim đang mở.</span>
+        <span class="btn btn-outline-secondary disabled w-100">Chưa mở</span>
+      {% endif %}
+    </a>
+  </section>
+
+  <div class="bc-page-action-stack">
+    <a href="{% url 'public_result' %}" class="btn btn-outline-primary">Xem kết quả</a>
+    <a href="{% url 'feedback' %}" class="btn btn-outline-secondary">Gửi feedback</a>
+  </div>
+</div>
+{% endblock %}

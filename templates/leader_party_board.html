@@ -1,33 +1,28 @@
 {% extends "base.html" %}
-{% block title %}Xếp đội hình – BangCheck{% endblock %}
+{% block title %}Bảng bố trận · BangCheck{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-12 col-xxl-11">
+<div class="bc-leader-layout party-shell-layout">
+  {% include "partials/leader_nav.html" with active="party" %}
 
-    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <section class="bc-page">
+    <section class="bc-workspace-header">
       <div>
-        <h4 class="fw-bold mb-1">🧩 Xếp đội hình bang chiến</h4>
-        <div class="text-muted small">{{ event.title }} · {{ event.event_date|date:"d/m/Y" }}</div>
+        <h1 class="bc-title">Bảng bố trận</h1>
+        <p class="bc-subtitle">{{ event.title }} - {{ event.event_date|date:"d/m/Y" }}</p>
       </div>
-      <div class="d-flex flex-wrap gap-2">
-        <a href="{% url 'leader_dashboard' %}" class="btn btn-outline-secondary btn-sm">← Dashboard</a>
-        <a href="{% url 'public_result' %}" class="btn btn-outline-primary btn-sm">Kết quả public</a>
-      </div>
-    </div>
+    </section>
 
-    <div class="alert alert-info py-2 small">
-      Kéo thả thẻ nhân vật vào ô đội hình. Pool chỉ lấy người đã báo <b>Tham gia</b> trong event hiện tại.
-      <div class="tap-move-hint mt-1">📱 Trên điện thoại: chạm vào người cần xếp, rồi chạm vào ô muốn đặt.</div>
-    </div>
-
-    <div class="party-layout">
-      <aside class="party-pool card shadow-sm">
-        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-          <span>📥 Chưa xếp</span>
-          <span class="badge bg-light text-dark" data-count="unassigned">{{ unassigned|length }}</span>
+    <div class="party-layout party-layout-focused mt-3">
+      <aside class="party-pool card">
+        <div class="card-header party-pool-header">
+          <div>
+            <div class="fw-bold">Chưa phân công</div>
+            <div class="small bc-muted">Tap/kéo vào ô đội hình</div>
+          </div>
+          <span class="badge bc-badge-soft" data-count="unassigned">{{ unassigned|length }}</span>
         </div>
-        <div class="card-body p-2 party-pool-drop" data-team="unassigned" data-position="" ondragover="allowDrop(event)" ondrop="dropMember(event)">
+        <div class="card-body party-pool-drop" data-team="unassigned" data-position="" ondragover="allowDrop(event)" ondrop="dropMember(event)">
           {% if unassigned %}
             {% for m in unassigned %}
               {% include "partials/member_chip.html" with m=m editable_note=True %}
@@ -38,49 +33,42 @@
         </div>
       </aside>
 
-      <section class="party-main">
-        <ul class="nav nav-pills mb-3" id="partyTabs" role="tablist">
-          {% for key, board in boards.items %}
-          <li class="nav-item" role="presentation">
-            <button class="nav-link {% if forloop.first %}active{% endif %}" id="tab-{{ key }}" data-bs-toggle="pill" data-bs-target="#panel-{{ key }}" type="button" role="tab">
-              {{ board.short }} <span class="badge bg-secondary ms-1" data-tab-count="{{ key }}">{{ board.count }}/{{ board.capacity }}</span>
-            </button>
-          </li>
-          {% endfor %}
-        </ul>
+      <section class="party-main party-main-priority">
+        <div class="party-topbar card">
+          <div class="party-topbar-copy">
+            <h2 class="bc-section-title">Đội hình</h2>
+            <div class="small bc-muted">5 cột × 6 ô</div>
+          </div>
 
-        <div class="tab-content">
+          <ul class="nav nav-pills bc-pill-tabs party-team-switch" id="partyTabs" role="tablist">
+            {% for key, board in boards.items %}
+            <li class="nav-item" role="presentation">
+              <button class="nav-link {% if forloop.first %}active{% endif %}" id="tab-{{ key }}" data-bs-toggle="pill" data-bs-target="#panel-{{ key }}" type="button" role="tab">
+                <span class="tab-label">{{ board.short }}</span>
+                <span class="badge" data-tab-count="{{ key }}">{{ board.count }}/{{ board.capacity }}</span>
+              </button>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+
+        <div class="tab-content party-tab-content">
           {% for key, board in boards.items %}
           <div class="tab-pane fade {% if forloop.first %}show active{% endif %}" id="panel-{{ key }}" role="tabpanel">
-            <div class="card shadow-sm party-board-card">
-              <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <div class="card party-board-card">
+              <div class="card-header party-board-header">
                 <div>
-                  <h5 class="mb-0 fw-bold">{{ board.label }}</h5>
-                  <div class="small text-muted">30 ô xếp đội · 5 cột x 6 người</div>
+                  <h2 class="bc-section-title fs-5">{{ board.label }}</h2>
+                  <div class="small bc-muted">30 ô</div>
                 </div>
-                <span class="badge text-bg-dark" data-count="{{ key }}" data-capacity="{{ board.capacity }}">{{ board.count }}/{{ board.capacity }}</span>
+                <span class="badge bc-badge-soft" data-count="{{ key }}" data-capacity="{{ board.capacity }}">{{ board.count }}/{{ board.capacity }}</span>
               </div>
-              <div class="team-note-editor border-bottom bg-light p-2 p-md-3">
-                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
-                  <div>
-                    <div class="fw-bold small">📝 Ghi chú chiến thuật {{ board.short }}</div>
-                    <div class="small text-muted">Note chung riêng cho tab {{ board.label }}, public chỉ xem.</div>
-                  </div>
-                  <button type="button" class="btn btn-sm btn-dark" onclick="saveSingleTeamNote('{{ key }}')">Lưu note {{ board.short }}</button>
-                </div>
-                <textarea id="team-note-{{ key }}"
-                          class="form-control form-control-sm team-note-input"
-                          rows="3"
-                          data-team-note="{{ key }}"
-                          placeholder="Ghi chú chung cho {{ board.short }}...">{{ board.note }}</textarea>
-              </div>
-              <div class="card-body p-2 p-md-3">
+              <div class="card-body party-board-body">
                 <div class="party-board-scroll">
                   <div class="party-grid party-grid-{{ key }}" style="--party-cols: {{ board.cols }};">
                     {% for row in board.rows %}
                       {% for cell in row %}
                       <div class="party-cell" data-team="{{ key }}" data-position="{{ cell.position }}" ondragover="allowDrop(event)" ondrop="dropMember(event)">
-                        <div class="party-cell-index">{{ cell.position }}</div>
                         {% if cell.member %}
                           {% include "partials/member_chip.html" with m=cell.member editable_note=True %}
                         {% endif %}
@@ -89,14 +77,46 @@
                     {% endfor %}
                   </div>
                 </div>
+
+                <div class="party-active-note">
+                  <div class="party-active-note-title">
+                    <div>
+                      <div class="fw-bold">Ghi chú {{ board.short }}</div>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-bc-primary" onclick="saveSingleTeamNote('{{ key }}')">Lưu</button>
+                  </div>
+                  <textarea id="team-note-{{ key }}" class="form-control team-note-input" rows="2" data-team-note="{{ key }}" placeholder="Ghi chú {{ board.short }}...">{{ board.note }}</textarea>
+                </div>
               </div>
             </div>
           </div>
           {% endfor %}
         </div>
+
       </section>
     </div>
+  </section>
+</div>
 
+<div class="modal fade" id="strategyNoteModal" tabindex="-1" aria-labelledby="strategyNoteModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content bc-note-modal">
+      <div class="modal-header">
+        <div>
+          <h2 class="modal-title fs-5" id="strategyNoteModalLabel">Ghi chú cá nhân</h2>
+          <div class="small bc-muted" id="strategyNoteMemberName"></div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+      </div>
+      <div class="modal-body">
+        <label for="strategyNoteInput" class="form-label">Nội dung</label>
+        <textarea id="strategyNoteInput" class="form-control" rows="5" maxlength="500" placeholder="Skill, vị trí hoặc lưu ý chiến thuật..."></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+        <button type="button" class="btn btn-bc-primary" id="saveStrategyNoteBtn">Lưu</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -281,16 +301,33 @@ async function dropMember(event) {
   await savePartyMove(memberId, dropTarget);
 }
 
-async function editStrategyNote(event, memberId) {
+let activeStrategyMemberId = null;
+const strategyNoteModalEl = document.getElementById('strategyNoteModal');
+const strategyNoteModal = strategyNoteModalEl ? new bootstrap.Modal(strategyNoteModalEl) : null;
+
+function editStrategyNote(event, memberId) {
   event.preventDefault();
   event.stopPropagation();
 
   const chip = getChip(memberId);
-  if (!chip) return;
+  if (!chip || !strategyNoteModal) return;
 
-  const currentNote = chip.dataset.strategyNote || '';
-  const newNote = window.prompt('Ghi chú skill/chiến thuật cá nhân:', currentNote);
-  if (newNote === null) return;
+  activeStrategyMemberId = memberId;
+  document.getElementById('strategyNoteInput').value = chip.dataset.strategyNote || '';
+  document.getElementById('strategyNoteMemberName').textContent =
+    chip.querySelector('.chip-name')?.textContent?.trim() || '';
+  strategyNoteModal.show();
+  setTimeout(() => document.getElementById('strategyNoteInput')?.focus(), 180);
+}
+
+async function saveStrategyNote() {
+  if (!activeStrategyMemberId) return;
+  const input = document.getElementById('strategyNoteInput');
+  const saveBtn = document.getElementById('saveStrategyNoteBtn');
+  const newNote = input.value.trim();
+
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'Đang lưu';
 
   try {
     const resp = await fetch('{% url "leader_party_note" %}', {
@@ -300,7 +337,7 @@ async function editStrategyNote(event, memberId) {
         'X-CSRFToken': CSRF,
       },
       body: JSON.stringify({
-        member_id: memberId,
+        member_id: activeStrategyMemberId,
         strategy_note: newNote,
       })
     });
@@ -311,24 +348,38 @@ async function editStrategyNote(event, memberId) {
       return;
     }
 
-    document.querySelectorAll(`.member-chip[data-member-id="${memberId}"]`).forEach(item => {
-      item.dataset.strategyNote = data.strategy_note || '';
-      let noteEl = item.querySelector('.chip-strategy-note');
-      if (!noteEl) {
-        noteEl = document.createElement('div');
-        noteEl.className = 'chip-strategy-note';
-        item.querySelector('.chip-main')?.appendChild(noteEl);
+    document.querySelectorAll(`.member-chip[data-member-id="${activeStrategyMemberId}"]`).forEach(item => {
+      const noteValue = data.strategy_note || '';
+      item.dataset.strategyNote = noteValue;
+      item.classList.toggle('has-strategy-note', !!noteValue);
+
+      let indicator = item.querySelector('.chip-note-indicator');
+      if (noteValue && !indicator) {
+        indicator = document.createElement('span');
+        indicator.className = 'chip-note-indicator';
+        indicator.textContent = 'Note';
+        const line = item.querySelector('.chip-topline');
+        const editBtn = item.querySelector('.chip-note-btn');
+        if (line && editBtn) line.insertBefore(indicator, editBtn);
+        else if (line) line.appendChild(indicator);
       }
-      noteEl.textContent = data.strategy_note || '';
-      noteEl.title = data.strategy_note || '';
-      noteEl.classList.toggle('chip-strategy-note-empty', !data.strategy_note);
+      if (indicator) {
+        indicator.title = noteValue;
+        indicator.hidden = !noteValue;
+      }
     });
 
+    strategyNoteModal.hide();
     showPartyToast(data.message || 'Đã lưu ghi chú.');
   } catch (e) {
     showPartyToast('Lỗi kết nối khi lưu ghi chú.', true);
+  } finally {
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Lưu';
   }
 }
+
+document.getElementById('saveStrategyNoteBtn')?.addEventListener('click', saveStrategyNote);
 
 async function saveTeamNote(teamKey, note) {
   const resp = await fetch('{% url "leader_party_team_note" %}', {

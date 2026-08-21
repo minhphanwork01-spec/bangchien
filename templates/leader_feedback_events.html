@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Feedback · BangCheck{% endblock %}
+
+{% block content %}
+<div class="bc-leader-layout">
+  {% include "partials/leader_nav.html" with active="feedback" %}
+
+  <section class="bc-page">
+    <div class="bc-workspace-header">
+      <span class="bc-kicker">Feedback</span>
+      <h1 class="bc-title">Feedback bang chiến</h1>
+      <p class="bc-subtitle">Chọn event để xem feedback thành viên.</p>
+    </div>
+
+    <div class="bc-panel bc-table-card">
+      <div class="bc-panel-header">
+        <div>
+          <h2 class="bc-section-title fs-5">Event có feedback</h2>
+          <div class="bc-muted small">Chọn event để xem nội dung chi tiết.</div>
+        </div>
+      </div>
+      <div class="table-responsive feedback-events-table-responsive">
+        <table class="table table-hover mb-0 align-middle feedback-events-table">
+          <thead>
+            <tr>
+              <th>Event</th>
+              <th>Ngày</th>
+              <th class="text-center">Số feedback</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for event in events %}
+            <tr>
+              <td class="fw-semibold">{{ event.title }}</td>
+              <td>{{ event.event_date|date:"d/m/Y" }}</td>
+              <td class="text-center"><span class="badge text-bg-primary">{{ event.feedback_count }}</span></td>
+              <td class="text-end">
+                <a href="{% url 'leader_feedback_detail' event.id %}" class="btn btn-outline-primary btn-sm">Xem feedback</a>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="4" class="text-center text-muted py-4">Chưa có feedback nào.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}

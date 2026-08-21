@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Bảng chuyên cần · BangCheck{% endblock %}
+
+{% block content %}
+<div class="bc-page bc-command-shell">
+  <div class="bc-hero-card">
+    <span class="bc-kicker">Bang chiến</span>
+    <h1 class="bc-title">Bảng chuyên cần</h1>
+    <p class="bc-subtitle">
+      Tính trên {{ events_count }} trận bang chiến gần nhất đã diễn ra.
+      Xếp theo số trận tham gia, đồng hạng xét tỷ lệ.
+    </p>
+  </div>
+
+  {% if not ranked and not newcomers %}
+    <section class="bc-panel"><div class="bc-panel-body bc-empty">
+      <div class="bc-empty-mark">–</div>
+      Chưa có dữ liệu — cần ít nhất một trận bang chiến diễn ra xong.
+    </div></section>
+  {% else %}
+
+  {% if ranked %}
+  <section class="bc-panel">
+    <header class="bc-panel-header"><h2 class="bc-section-title fs-5">Xếp hạng</h2></header>
+    <div class="bc-panel-body lb-list">
+      {% for row in ranked %}
+      <div class="lb-row {% if row.rank <= 3 %}lb-top{% endif %}">
+        <span class="lb-rank {% if row.rank == 1 %}lb-rank-1{% elif row.rank <= 3 %}lb-rank-3{% endif %}">{{ row.rank }}</span>
+        <div class="lb-main">
+          <div class="lb-nameline">
+            <span class="lb-name">{{ row.member.display_name }}</span>
+            <span class="class-badge">{{ row.member.class_label }}</span>
+          </div>
+          <div class="lb-bar"><i style="width: {{ row.pct }}%"></i></div>
+        </div>
+        <div class="lb-score">
+          <span class="lb-count">{{ row.joined }}<small>/{{ row.denom }}</small></span>
+          <span class="lb-pct">{{ row.pct }}%</span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if newcomers %}
+  <section class="bc-panel">
+    <header class="bc-panel-header">
+      <h2 class="bc-section-title fs-5">Thành viên mới</h2>
+      <span class="bc-badge-soft badge">Chưa đủ {{ min_ranked }} trận để xếp hạng</span>
+    </header>
+    <div class="bc-panel-body lb-list">
+      {% for row in newcomers %}
+      <div class="lb-row lb-newcomer">
+        <span class="lb-rank lb-rank-new">✦</span>
+        <div class="lb-main">
+          <div class="lb-nameline">
+            <span class="lb-name">{{ row.member.display_name }}</span>
+            <span class="class-badge">{{ row.member.class_label }}</span>
+          </div>
+        </div>
+        <div class="lb-score"><span class="lb-count">{{ row.joined }}<small>/{{ row.denom }}</small></span></div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+  {% endif %}
+</div>
+{% endblock %}

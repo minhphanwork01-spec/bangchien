@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Feedback bang chiến · BangCheck{% endblock %}
+
+{% block content %}
+<div class="bc-command-shell bc-page">
+  {% if not event %}
+  <section class="bc-empty bc-panel">
+    <div class="bc-empty-mark">F</div>
+    <h1 class="h4 fw-bold">Chưa mở feedback</h1>
+    <p>Feedback sẽ mở sau giờ bang chiến của event gần nhất.</p>
+    <a href="{% url 'checkin' %}" class="btn btn-bc-primary btn-sm">Về trang báo danh</a>
+  </section>
+
+  {% else %}
+  <section class="bc-hero-card">
+    <span class="bc-kicker">Feedback</span>
+    <h1 class="bc-title">Feedback sau bang chiến</h1>
+    <p class="bc-subtitle">{{ event.title }} · {{ event.event_date|date:"d/m/Y" }} · Mở feedback từ {{ feedback_start_at|date:"H:i d/m" }}</p>
+  </section>
+
+  <section class="bc-panel">
+    <div class="bc-panel-body">
+      <div class="bc-soft-note mb-3">
+        Feedback hiển thị ẩn danh cho leader. Leader chỉ thấy nội dung và thời gian gửi, không thấy tên nhân vật.
+        Nếu dùng cùng trình duyệt, bạn có thể quay lại trang này để sửa feedback.
+      </div>
+
+      {% if existing_feedback %}
+        <div class="alert alert-info small">
+          Bạn đã gửi feedback cho event này lúc {{ existing_feedback.created_at|date:"H:i d/m" }}. Có thể sửa nội dung bên dưới rồi bấm cập nhật.
+        </div>
+      {% endif %}
+
+      <form method="POST">
+        {% csrf_token %}
+        <label for="feedbackContent" class="form-label">Nội dung feedback</label>
+        <textarea id="feedbackContent"
+                  name="content"
+                  class="form-control feedback-textarea"
+                  rows="7"
+                  maxlength="2000"
+                  placeholder="Góp ý ngắn gọn, xây dựng: đội hình, call, chia team, vật tư, điểm cần cải thiện...">{% if existing_feedback %}{{ existing_feedback.content }}{% endif %}</textarea>
+        <div class="small bc-muted mt-2">Tối đa 2000 ký tự. Không cần ghi tên nếu muốn giữ ẩn danh.</div>
+
+        <div class="d-grid gap-2 mt-3">
+          <button type="submit" class="btn btn-bc-primary">
+            {% if existing_feedback %}Cập nhật feedback{% else %}Gửi feedback{% endif %}
+          </button>
+          <a href="{% url 'public_result_type' 'war' %}" class="btn btn-outline-secondary btn-sm">Xem kết quả / đội hình</a>
+        </div>
+      </form>
+    </div>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

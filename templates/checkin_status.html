@@ -1,89 +1,221 @@
 {% extends "base.html" %}
-{% block title %}Báo danh – BangCheck{% endblock %}
+{% block title %}Trạng thái điểm danh · BangCheck{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-12 col-md-7 col-lg-5">
+<div class="bc-command-shell bc-page">
+  <section class="bc-hero-card">
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+      <div>
+        <span class="bc-kicker">{{ event_type_label }}</span>
+        {% if event %}
+          <h1 class="bc-title">{{ event.title }}</h1>
+          <p class="bc-subtitle">{{ event.event_date|date:"l, d/m/Y" }}{% if event.deadline_at %} · Hạn báo danh: {{ event.deadline_at|date:"H:i d/m" }}{% endif %}</p>
+        {% else %}
+          <h1 class="bc-title">Chưa có sự kiện</h1>
+          <p class="bc-subtitle">Hiện chưa có sự kiện {{ event_type_label|lower }} đang mở.</p>
+        {% endif %}
+      </div>
+      <div class="bc-hero-action-stack">
+        <a href="{% url 'public_result_type' event_type %}" class="btn btn-outline-primary">Xem kết quả</a>
+        {% if event_type == "war" %}
+          <a href="{% url 'feedback' %}" class="btn btn-outline-secondary">Gửi feedback</a>
+        {% endif %}
+      </div>
+    </div>
+  </section>
 
-    {% if not event %}
-    <div class="card shadow-sm text-center p-4">
-      <div class="fs-1 mb-2">😴</div>
-      <h5 class="fw-bold">Chưa có bang chiến nào đang mở</h5>
-      <p class="text-muted">Liên hệ leader để biết lịch bang chiến tuần này.</p>
-      <hr>
-      <p class="small text-muted mb-1">Bạn đang đăng nhập là:</p>
-      <p class="fw-bold fs-5 mb-3">{{ member.display_name }}</p>
-      <form method="POST" action="{% url 'clear_member' %}">
+  <section class="bc-panel">
+    <div class="bc-panel-body text-center">
+      <div class="bc-muted fw-bold mb-2">Nhân vật đang báo danh</div>
+      <h2 class="bc-title fs-1">{{ member.display_name }}</h2>
+      {% if member.class_name %}
+        <div class="mt-2"><span class="class-badge class-{{ member.class_slug }}">{{ member.class_label|default:member.class_name }}</span></div>
+      {% endif %}
+
+      <div class="bc-soft-note mt-4">
+        <div class="bc-muted fw-bold">Trạng thái hiện tại</div>
+        {% if attendance %}
+          <div class="fs-3 fw-bold {% if attendance.status == 'joined' %}text-success{% else %}text-danger{% endif %}">
+            {{ attendance.get_status_display }}
+          </div>
+          <div class="bc-muted">Cập nhật: {{ attendance.updated_at|date:"H:i d/m" }}</div>
+        {% else %}
+          <div class="fs-3 fw-bold text-warning">Chưa báo danh</div>
+          <div class="bc-muted">Vui lòng chọn trạng thái tham gia sự kiện.</div>
+        {% endif %}
+      </div>
+
+      {% if event and event.checkin_locked %}
+        <div class="alert alert-warning mt-4 mb-0 text-start">
+          <strong>Đã chốt sổ báo danh</strong> lúc {{ event.checkin_lock_at|date:"H:i d/m" }}.
+          Trạng thái phía trên là kết quả cuối. Cần thay đổi, vui lòng nhắn leader.
+        </div>
+      {% elif event %}
+      <form method="POST" action="{% url 'submit_attendance_type' event_type %}" class="mt-4">
         {% csrf_token %}
-        <button class="btn btn-outline-secondary btn-sm">🔄 Không phải tôi? Chọn lại</button>
+        <div class="row g-3">
+          <div class="col-12 col-md-6">
+            <button type="submit" name="status" value="joined" class="btn btn-success btn-lg w-100">
+              <span class="d-block fs-5">Tham gia</span>
+            </button>
+          </div>
+          <div class="col-12 col-md-6">
+            <button type="submit" name="status" value="absent" class="btn btn-outline-danger btn-lg w-100">
+              <span class="d-block fs-5">Không tham gia</span>
+            </button>
+          </div>
+        </div>
+      </form>
+      {% endif %}
+
+      <div class="bc-member-change-actions mt-3">
+        {% if pending_member_update %}
+          <button
+            type="button"
+            class="btn btn-outline-secondary w-100"
+            data-bs-toggle="modal"
+            data-bs-target="#memberUpdatePendingModal"
+          >
+            Yêu cầu thay đổi đang chờ duyệt
+          </button>
+        {% else %}
+          <button
+            type="button"
+            class="btn btn-outline-secondary w-100"
+            data-bs-toggle="modal"
+            data-bs-target="#memberUpdateModal"
+          >
+            Thay đổi thông tin
+          </button>
+        {% endif %}
+      </div>
+
+      <form method="POST" action="{% url 'clear_member_type' event_type %}" class="mt-3">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-link text-muted">Không phải {{ member.display_name }}? Chọn lại</button>
       </form>
     </div>
+  </section>
+</div>
 
-    {% else %}
-    <div class="card shadow-sm">
-      <div class="card-header bg-dark text-white text-center py-3">
-        <div class="fs-6 text-warning fw-bold">⚔️ {{ event.title }}</div>
-        <div class="fs-5 fw-bold">{{ event.event_date|date:"l, d/m/Y" }}</div>
-        {% if event.deadline_at %}
-          <div class="small text-light opacity-75">Hạn báo danh: {{ event.deadline_at|date:"H:i d/m" }}</div>
-        {% endif %}
-      </div>
-
-      <div class="card-body p-4">
-        <div class="text-center mb-4">
-          <p class="text-muted small mb-1">Xin chào,</p>
-          <h4 class="fw-bold mb-0">{{ member.display_name }}</h4>
-          <div class="mt-1">
-            {% if member.class_name %}<span class="badge bg-secondary">{{ member.class_label }}</span>{% endif %}
-          </div>
+{% if pending_member_update %}
+<div class="modal fade" id="memberUpdatePendingModal" tabindex="-1" aria-labelledby="memberUpdatePendingTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content bc-request-modal">
+      <div class="modal-header">
+        <div>
+          <h2 class="modal-title fs-5" id="memberUpdatePendingTitle">Yêu cầu đang chờ duyệt</h2>
+          <p class="bc-muted small mb-0">Thông tin hiện tại vẫn được dùng cho đến khi leader duyệt.</p>
         </div>
-
-        {% if attendance %}
-        <div class="current-status-box mb-4 p-3 rounded text-center status-{{ attendance.status }}">
-          <div class="small text-muted mb-1">Trạng thái hiện tại</div>
-          <div class="fw-bold fs-5">
-            {% if attendance.status == 'joined' %}✅ Tham gia{% elif attendance.status == 'absent' %}❌ Không tham gia{% endif %}
-          </div>
-          <div class="small text-muted mt-1 opacity-75">Cập nhật: {{ attendance.updated_at|date:"H:i d/m" }}</div>
-        </div>
-        {% endif %}
-
-        <p class="text-center text-muted small mb-3">
-          {% if attendance %}Bạn có muốn đổi trạng thái?{% else %}Bạn có tham gia bang chiến không?{% endif %}
-        </p>
-
-        <form method="POST" action="{% url 'submit_attendance' %}" id="checkinForm">
-          {% csrf_token %}
-
-          <div class="row g-2">
-            <div class="col-6">
-              <button type="submit" name="status" value="joined" class="btn btn-status w-100 {% if attendance.status == 'joined' %}btn-joined-active{% else %}btn-joined{% endif %}">
-                ✅<br>Tham gia
-              </button>
-            </div>
-            <div class="col-6">
-              <button type="submit" name="status" value="absent" class="btn btn-status w-100 {% if attendance.status == 'absent' %}btn-absent-active{% else %}btn-absent{% endif %}">
-                ❌<br>Không tham gia
-              </button>
-            </div>
-          </div>
-        </form>
-
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
       </div>
-
-      <div class="card-footer text-center py-3 bg-light">
-        <form method="POST" action="{% url 'clear_member' %}" class="d-inline">
-          {% csrf_token %}
-          <button type="submit" class="btn btn-link btn-sm text-muted p-0">🔄 Không phải {{ member.display_name }}? Chọn lại</button>
-        </form>
+      <div class="modal-body">
+        <dl class="bc-change-summary">
+          <div>
+            <dt>Tên</dt>
+            <dd>{{ pending_member_update.original_name }}{% if pending_member_update.has_name_change %} <span aria-hidden="true">→</span> {{ pending_member_update.requested_name }}{% else %} <span class="bc-muted">(không đổi)</span>{% endif %}</dd>
+          </div>
+          <div>
+            <dt>Phái</dt>
+            <dd>
+              {{ pending_member_update.original_class_name|default:"-" }}
+              {% if pending_member_update.original_class_variant %} - {{ pending_member_update.original_class_variant }}{% endif %}
+              {% if pending_member_update.has_class_change %}
+                <span aria-hidden="true">→</span>
+                {{ pending_member_update.class_name|default:"-" }}
+                {% if pending_member_update.class_variant %} - {{ pending_member_update.class_variant }}{% endif %}
+              {% else %}
+                <span class="bc-muted">(không đổi)</span>
+              {% endif %}
+            </dd>
+          </div>
+          <div>
+            <dt>Gửi lúc</dt>
+            <dd>{{ pending_member_update.created_at|date:"H:i d/m/Y" }}</dd>
+          </div>
+        </dl>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-bc-primary" data-bs-dismiss="modal">Đóng</button>
       </div>
     </div>
-
-    <div class="text-center mt-3">
-      <a href="{% url 'public_result' %}" class="btn btn-outline-secondary btn-sm">📊 Xem kết quả điểm danh</a>
-    </div>
-
-    {% endif %}
   </div>
 </div>
+{% else %}
+<div class="modal fade" id="memberUpdateModal" tabindex="-1" aria-labelledby="memberUpdateTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content bc-request-modal">
+      <div class="modal-header">
+        <div>
+          <h2 class="modal-title fs-5" id="memberUpdateTitle">Thay đổi thông tin nhân vật</h2>
+          <p class="bc-muted small mb-0">Thông tin chỉ được cập nhật sau khi leader duyệt.</p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+      </div>
+      <form method="POST" action="{% url 'request_member_update' event_type %}">
+        {% csrf_token %}
+        <div class="modal-body">
+          {% for field in member_update_form %}
+            <div class="mb-3">
+              <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+              {{ field }}
+              {% if field.help_text %}
+                <div class="form-text">{{ field.help_text }}</div>
+              {% endif %}
+            </div>
+          {% endfor %}
+          <div class="bc-soft-note small mb-0">
+            Nếu bạn không đổi phái hoặc tên, hệ thống sẽ giữ nguyên thông tin đó.
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+          <button type="submit" class="btn btn-bc-primary">Gửi yêu cầu</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  const classSelect = document.getElementById("id_class_name");
+  const variantSelect = document.getElementById("id_class_variant");
+  if (!classSelect || !variantSelect) return;
+
+  const allowedByClass = {
+    "Thiết Y": ["Ngự", "Phá"],
+    "Tố Vấn": ["Thiên Vấn", "Tố Tâm"]
+  };
+  const originalOptions = Array.from(variantSelect.options).map((option) => ({
+    value: option.value,
+    text: option.text
+  }));
+
+  function rebuildVariants() {
+    const currentClass = classSelect.value;
+    const currentValue = variantSelect.value;
+    const allowed = allowedByClass[currentClass] || [];
+
+    variantSelect.innerHTML = "";
+    originalOptions.forEach((optionData) => {
+      if (optionData.value === "" || allowed.includes(optionData.value)) {
+        const option = document.createElement("option");
+        option.value = optionData.value;
+        option.textContent = optionData.text;
+        variantSelect.appendChild(option);
+      }
+    });
+
+    variantSelect.disabled = allowed.length === 0;
+    variantSelect.value = allowed.includes(currentValue) ? currentValue : "";
+  }
+
+  classSelect.addEventListener("change", rebuildVariants);
+  rebuildVariants();
+})();
+</script>
 {% endblock %}

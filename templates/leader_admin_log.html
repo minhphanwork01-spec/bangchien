@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block title %}Nhật ký quản trị · BangCheck{% endblock %}
+
+{% block content %}
+<div class="bc-leader-layout">
+  {% include "partials/leader_nav.html" with active="adminlog" %}
+
+  <div class="bc-page">
+    <div class="bc-workspace-header">
+      <div>
+        <h1 class="bc-title">Nhật ký quản trị</h1>
+        <p class="bc-subtitle">Ai sửa gì, giá trị trước và sau, từ thiết bị nào · 200 thao tác gần nhất</p>
+      </div>
+    </div>
+
+    <section class="bc-filter-bar">
+      <form method="GET" class="bc-request-filter">
+        <div class="bc-filter-group">
+          <label class="bc-filter-label" for="fActor">Tài khoản</label>
+          <select class="form-select" id="fActor" name="actor">
+            <option value="">Tất cả</option>
+            {% for a in actors %}
+              <option value="{{ a }}" {% if filter_actor == a %}selected{% endif %}>{{ a }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="bc-filter-group">
+          <label class="bc-filter-label" for="fAction">Hành động</label>
+          <select class="form-select" id="fAction" name="action">
+            <option value="">Tất cả</option>
+            {% for value, label in action_choices %}
+              <option value="{{ value }}" {% if filter_action == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="bc-filter-group">
+          <label class="bc-filter-label" for="fType">Loại đối tượng</label>
+          <select class="form-select" id="fType" name="object_type">
+            <option value="">Tất cả</option>
+            {% for t in object_types %}
+              <option value="{{ t }}" {% if filter_object_type == t %}selected{% endif %}>{{ t }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="bc-actions-row">
+          <button type="submit" class="btn btn-bc-primary">Lọc</button>
+          <a href="{% url 'leader_admin_log' %}" class="btn btn-outline-secondary">Xoá lọc</a>
+        </div>
+      </form>
+    </section>
+
+    {% if not rows %}
+      <section class="bc-panel"><div class="bc-panel-body bc-empty">
+        <div class="bc-empty-mark">–</div>
+        Chưa có thao tác nào được ghi lại. Nhật ký bắt đầu tính từ lúc tính năng này được bật.
+      </div></section>
+    {% else %}
+    <section class="bc-table-card">
+      <header class="bc-panel-header">
+        <h2 class="bc-section-title fs-5">Thao tác gần đây</h2>
+      </header>
+      <div class="table-responsive">
+        <table class="table adminlog-table">
+          <thead>
+            <tr>
+              <th style="width:130px">Thời điểm</th>
+              <th style="width:110px">Tài khoản</th>
+              <th style="width:90px">Hành động</th>
+              <th style="width:170px">Đối tượng</th>
+              <th>Thay đổi</th>
+              <th style="width:150px">Thiết bị</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in rows %}
+            <tr>
+              <td class="small bc-muted text-nowrap">{{ row.log.created_at|date:"H:i d/m/Y" }}</td>
+              <td class="fw-semibold">{{ row.log.actor_username|default:"—" }}</td>
+              <td>
+                <span class="badge log-action log-action-{{ row.log.action }}">{{ row.log.get_action_display }}</span>
+              </td>
+              <td>
+                <div class="fw-semibold">{{ row.log.object_repr|default:"—" }}</div>
+                <div class="small bc-muted">{{ row.log.object_type }}{% if row.log.note %} · {{ row.log.note }}{% endif %}</div>
+              </td>
+              <td>
+                {% if row.changes %}
+                  <div class="log-changes">
+                    {% for c in row.changes %}
+                      <div class="log-change">
+                        <span class="log-field">{{ c.label }}</span>
+                        <span class="log-old">{{ c.old }}</span>
+                        <span class="log-arrow">→</span>
+                        <span class="log-new">{{ c.new }}</span>
+                      </div>
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  <span class="bc-muted small">—</span>
+                {% endif %}
+              </td>
+              <td class="small">
+                <div>{{ row.log.device_label }}</div>
+                <div class="bc-muted">máy #{{ row.log.browser_short }}{% if row.log.ip_address %} · {{ row.log.ip_address }}{% endif %}</div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+    {% endif %}
+
+    <section class="bc-panel">
+      <header class="bc-panel-header">
+        <h2 class="bc-section-title fs-5">Django admin (nguồn phụ)</h2>
+        <span class="bc-badge-soft badge">Không có giá trị cũ</span>
+      </header>
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th style="width:130px">Thời điểm</th>
+              <th style="width:110px">Tài khoản</th>
+              <th style="width:170px">Đối tượng</th>
+              <th>Mô tả</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for e in django_logs %}
+            <tr>
+              <td class="small bc-muted text-nowrap">{{ e.action_time|date:"H:i d/m/Y" }}</td>
+              <td class="fw-semibold">{{ e.user.username }}</td>
+              <td>{{ e.object_repr }}</td>
+              <td class="small">{{ e.get_change_message|default:"—" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="text-center bc-muted py-4">Chưa có thao tác nào.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <p class="bc-muted small mb-0">
+      "Máy #xxxxxx" là mã ngẫu nhiên gắn theo từng trình duyệt: cùng một tài khoản nhưng
+      khác máy sẽ ra mã khác nhau, nên vẫn phân biệt được ai thao tác. Mã này ổn định hơn
+      IP (IP mạng di động đổi liên tục), nhưng sẽ đổi nếu người đó xoá cookie hoặc dùng
+      chế độ ẩn danh.
+    </p>
+  </div>
+</div>
+{% endblock %}
