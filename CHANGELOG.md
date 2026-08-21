@@ -1,3 +1,24 @@
+# UI Consolidation Release
+
+- Replaced the accumulated patch stylesheet with five scoped CSS modules.
+- Unified mobile table scrolling for events, feedback, and member requests.
+- Rebuilt leader attendance mobile rows for compact monitoring while preserving update time.
+- Added immediate `updated_at` refresh after leader saves attendance.
+- Unified public and leader party boards around readable 5 x 6 grids with local horizontal scrolling.
+- Replaced `window.prompt` personal-note editing with a Bootstrap modal.
+- Reduced leader page hero size into compact workspace headers.
+- Kept database models and migrations unchanged.
+- Preserved original party-board class colors and note indicators.
+
+# BangCheck Jade Mist mobile/UX polish
+
+- Removed class image icons from runtime UI to reduce load and avoid broken icon states.
+- Replaced brand image with robust text mark fallback.
+- Removed redundant brand/guild subtitle lines and Django Admin rail link.
+- Improved leader attendance mobile layout via card-style table rows.
+- Party board slots now hide slot numbers; assigned member chips fill the whole slot.
+- Simplified check-in action buttons to only 'Tham gia' and 'Không tham gia'.
+
 
 ## Latest cleanup / deploy update
 
@@ -198,3 +219,115 @@ Changed:
 - Reduced mobile squad chip font sizes and increased note line-height/padding so descenders in letters such as g/q are not clipped.
 - Improved mobile navbar/buttons/tabs wrapping and horizontal scroll for public/leader squad boards.
 - Kept desktop layout/scale unchanged as much as possible.
+
+## Feedback sau bang chiến
+
+Added:
+- Public/member feedback text page at `/feedback/`.
+- Feedback automatically attaches to the latest war event that has reached battle time.
+- `WarEvent.battle_start_at` for exact feedback opening time; fallback is 19:00 on `event_date`.
+- One feedback per browser/device token per event; reopening `/feedback/` on the same browser lets the user edit/update previous feedback.
+- Leader feedback list at `/leader/feedback/` and event detail at `/leader/feedback/<event_id>/`.
+- Leader view shows event, content, created time, updated time only.
+- Hidden technical audit hashes are stored in DB but not shown in leader UI.
+- Management command `export_feedback_audit` for server owner/dev shell export.
+- Lightweight profanity filter for explicit Vietnamese/English words.
+
+Changed:
+- Check-in and public result pages show feedback button when feedback is open.
+- Attendance submit now stores a soft browser/device cookie for future audit/feedback UX.
+
+Migration:
+- `0005_feedback.py` adds `WarEvent.battle_start_at` and `BattleFeedback`.
+
+## Scrim + Mobile Note Popup Update
+
+Added:
+- Added event type support: `Bang chiến` (`war`) and `Scrim` (`scrim`).
+- Added separate current event per event type. Creating/current-setting Scrim no longer overrides current Bang chiến.
+- Added `/checkin/` activity selection page.
+- Added `/checkin/war/` and `/checkin/scrim/` for separate check-in flows.
+- Added `/public/result/war/` and `/public/result/scrim/` for separate public result pages.
+- Added leader dashboard routes for both flows: `/leader/dashboard/war/` and `/leader/dashboard/scrim/`.
+- Added event type filter/list display in event management/admin.
+- Added Scrim demo event in seed command.
+- Added mobile-only strategy note popup/bottom sheet in public squad view.
+
+Changed:
+- Party board remains Bang chiến only.
+- Feedback remains Bang chiến only.
+- Public Scrim result only shows Tham gia / Không tham gia / Chưa điểm danh, no squad.
+- Mobile squad chips show compact `Note: ...`; tapping a noted member opens full note popup.
+- Existing events are migrated as Bang chiến by default.
+
+
+## Feedback profanity filter disabled
+
+Changed:
+- Disabled banned-word/profanity filter for feedback submission.
+- Feedback now only validates non-empty content and trims content to 2000 characters.
+- This avoids false positives for Vietnamese/English text and keeps anonymous feedback easy to submit.
+
+## Clean Operations UI Pass
+
+- Refined the previous Clean Guild OS pass into a more professional operations-console UI.
+- Kept database schema, models, migrations, and existing data flow unchanged.
+- Reduced visual bulk: lighter shadows, smaller radii, calmer typography, cleaner table spacing.
+- Preserved original-leaning party-board class colors for member chips only.
+- Tightened leader dashboard, public result, feedback, scrim/events, member request, and check-in surfaces through shared CSS tokens.
+- Shortened dashboard copy action labels and improved table cell padding for readability.
+
+
+
+## Operations UI mobile regression fix
+
+- Fixed leader dashboard status select clipping.
+- Restored original-style mobile public result behavior: page does not overflow; party board scrolls horizontally inside its panel.
+- Kept database/models/migrations unchanged.
+
+
+## Jade Mist Asset Integration Final
+- Added user-generated Jade Mist assets to static/img and wired them into UI.
+- Rebuilt CSS around actual background, ornament, brand, crest and class icon assets.
+- Preserved database schema, models and migrations.
+- Preserved party board 5 columns x 6 slots and exact class color identity.
+- Improved mobile containment for dashboard, result and party board.
+
+
+## Layout spacing correction
+- Fixed check-in/search panel padding so headings and inputs no longer stick to the card border.
+- Adjusted hero action alignment and mobile spacing.
+
+
+## Party board density fix
+- Party page leader nav is horizontal to free width.
+- Pool is compact like original tool.
+- Board is the primary region and keeps 5x6.
+- Placed member chips fill entire slots.
+
+
+## Public mobile result board and CTA alignment fix
+- Fixed public result CTA alignment and consistent button sizing.
+- Reduced mobile public metrics density so counts are compact.
+- Restored horizontal-scroll public party board on mobile with readable 5-column slots.
+- Compacted public squad tabs and team note so board/member names are the focus.
+
+
+## Party tabs + Django Admin link fix
+- Giữ tab Thủ/Công/Mid/Vật tư dạng hàng ngang, không bị rule filter pill mobile ép thành cột dọc.
+- Thêm lại link Django Admin trong dropdown Leader và leader rail.
+
+
+## Final UX review patch
+- Replaced metric top rings with semantic green/red/gray/jade surfaces.
+- Restored the public Feedback action for war result pages.
+- Hid the strategy-note sheet until a member note is opened.
+- Fixed leader attendance status select clipping on narrow mobile screens.
+- Preserved class colors in public attendance lists.
+
+
+## Feedback action placement fix
+- Added `Gửi feedback` directly below `Xem kết quả` on the check-in home page.
+- Added the same stacked action pattern to Bang chiến member selection and status pages.
+- Removed the duplicate feedback link from the bottom of the member search panel.
+- Kept Scrim pages free of the Bang chiến feedback action.

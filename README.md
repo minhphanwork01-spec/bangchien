@@ -142,3 +142,48 @@ Một người có thể ở vị trí squad khác nhau theo từng event vì `b
 - `Attendance.note` vẫn còn trong database để tương thích migration cũ, nhưng đã bị ẩn khỏi UI/export/admin flow chính.
 - `Member.role`, `Member.team`, `Member.battle_team`, `Member.battle_position` vẫn giữ để tránh phá migration cũ, nhưng flow squad hiện tại dùng `Attendance.battle_team` và `Attendance.battle_position`.
 - Nếu muốn clean schema triệt để sau này, tạo migration mới để xóa các legacy fields này sau khi app đã ổn định.
+
+## Feedback sau bang chiến
+
+- Member/public có thể gửi feedback tại `/feedback/` sau giờ bang chiến.
+- Không có rating, chỉ có nội dung text.
+- App tự gắn feedback vào event gần nhất đã đến giờ đánh, không bắt user chọn event.
+- Nếu `WarEvent.battle_start_at` trống, app mặc định mở feedback lúc 19:00 ngày bang chiến.
+- Cùng một trình duyệt/device cookie có thể sửa lại feedback đã gửi cho event đó.
+- Leader xem feedback tại `/leader/feedback/`.
+- Leader chỉ thấy nội dung, thời gian và event; không thấy member/device/IP.
+- Server owner/dev có thể export audit hash qua shell:
+
+```bash
+python manage.py export_feedback_audit
+python manage.py export_feedback_audit --event 12 --output feedback_event_12.csv
+```
+
+Khi deploy update feature này trên server đang có DB thật, chạy backup trước rồi migrate:
+
+```bash
+cp db.sqlite3 db_backup_before_feedback.sqlite3
+source .venv/bin/activate
+git pull
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py collectstatic --noinput
+```
+
+Không chạy `seed_demo_data --reset`, `flush`, hoặc xóa `db.sqlite3` trên server thật.
+
+### Event types: Bang chiến and Scrim
+
+BangCheck now supports two check-in flows:
+
+- `/checkin/war/` for Bang chiến.
+- `/checkin/scrim/` for Scrim.
+
+`/checkin/` is a simple activity selection page. Each event type has its own current event, so setting a Scrim as current does not replace the current Bang chiến event.
+
+Public results are also separated:
+
+- `/public/result/war/` shows Bang chiến attendance, squad, team notes, and member strategy notes.
+- `/public/result/scrim/` shows only attendance groups: Tham gia, Không tham gia, Chưa điểm danh.
+
+Party board and feedback are still for Bang chiến only.
