@@ -7,6 +7,7 @@ Thiết kế theo nguyên tắc: attendance luôn lưu bằng member_id, không 
 
 import unicodedata
 from django.db import models
+from django.utils import timezone
 
 
 def normalize_search_name(text: str) -> str:
@@ -39,14 +40,10 @@ CLASS_COLORS = {
     "Tố Vấn": "to-van",
 }
 
-# Icon chỉ dùng để phân biệt hệ/phân nhánh đặc biệt, không dùng icon riêng cho từng phái.
-# Phái được phân biệt bằng màu trong CSS.
-VARIANT_ICONS = {
-    "Ngự": "🛡️",
-    "Phá": "👊",
-    "Thiên Vấn": "🦋",
-    "Tố Tâm": "🌸",
-}
+# Không dùng emoji làm icon (render khác nhau mỗi OS, nhìn "chatbot").
+# Variant đã hiển thị trong class_label ("Thiết Y · Ngự"); giữ dict rỗng
+# để property variant_icon không vỡ các payload cũ.
+VARIANT_ICONS = {}
 
 # Chỉ 2 phái này có hệ/phân nhánh trong app.
 # Các phái khác sẽ tự clear class_variant khi save để tránh dữ liệu bẩn.
@@ -80,8 +77,8 @@ class Member(models.Model):
         TO_VAN = "Tố Vấn", "Tố Vấn"
 
     class ClassVariant(models.TextChoices):
-        NGU = "Ngự", "Ngự"
         PHA = "Phá", "Phá"
+        NGU = "Ngự", "Ngự"
         THIEN_VAN = "Thiên Vấn", "Thiên Vấn"
         TO_TAM = "Tố Tâm", "Tố Tâm"
 
@@ -98,7 +95,7 @@ class Member(models.Model):
     class_name = models.CharField("Phái", max_length=50, choices=ClassName.choices, blank=True)
     class_variant = models.CharField("Hệ/phân nhánh", max_length=50, choices=ClassVariant.choices, blank=True)
     role = models.CharField("Role", max_length=20, choices=Role.choices, blank=True)
-    team = models.CharField("Đội/Tổ thường dùng", max_length=50, blank=True)
+    team = models.CharField("Đội", max_length=50, blank=True)
     battle_team = models.CharField("Đội hình bang chiến", max_length=20, choices=BattleTeam.choices, blank=True, default="")
     battle_position = models.PositiveSmallIntegerField("Vị trí đội hình", null=True, blank=True)
     note = models.TextField("Ghi chú", blank=True)
@@ -110,11 +107,11 @@ class Member(models.Model):
         verbose_name = "Thành viên"
         verbose_name_plural = "Thành viên"
         indexes = [
-            models.Index(fields=["display_name"]),
-            models.Index(fields=["search_name"]),
-            models.Index(fields=["active"]),
-            models.Index(fields=["class_name"]),
-            models.Index(fields=["battle_team", "battle_position"]),
+            models.Index(fields=["display_name"], name="attendance__display_5e89d9_idx"),
+            models.Index(fields=["search_name"], name="attendance__search__f7bdf3_idx"),
+            models.Index(fields=["active"], name="attendance__active_395a22_idx"),
+            models.Index(fields=["class_name"], name="attendance__class__95a4d4_idx"),
+            models.Index(fields=["battle_team", "battle_position"], name="attendance__battle_7ec61d_idx"),
         ]
 
     def save(self, *args, **kwargs):
@@ -162,10 +159,15 @@ class Member(models.Model):
 
 class WarEvent(models.Model):
     """
-    Sự kiện bang chiến. Mỗi tuần có 1 event.
-    - is_current=True: event đang được dùng cho check-in.
-    - Chỉ có duy nhất 1 event is_current tại một thời điểm.
+    Sự kiện hoạt động của bang.
+    - event_type=war: Bang chiến, có squad/feedback.
+    - event_type=scrim: Scrim, chỉ điểm danh đơn giản.
+    - is_current=True được tách theo từng event_type.
     """
+
+    class EventType(models.TextChoices):
+        WAR = "war", "Bang chiến"
+        SCRIM = "scrim", "Scrim"
 
     class Status(models.TextChoices):
         DRAFT = "draft", "Nháp"
@@ -173,14 +175,28 @@ class WarEvent(models.Model):
         CLOSED = "closed", "Đã đóng"
         ARCHIVED = "archived", "Lưu trữ"
 
+    event_type = models.CharField("Loại sự kiện", max_length=20, choices=EventType.choices, default=EventType.WAR)
     title = models.CharField("Tiêu đề", max_length=200)
     event_date = models.DateField("Ngày bang chiến")
     deadline_at = models.DateTimeField("Hạn báo danh", null=True, blank=True)
+    battle_start_at = models.DateTimeField("Giờ bắt đầu bang chiến", null=True, blank=True)
     status = models.CharField(
         "Trạng thái", max_length=20, choices=Status.choices, default=Status.DRAFT
     )
     is_current = models.BooleanField("Event hiện tại", default=False)
     team_notes = models.JSONField("Ghi chú chiến thuật theo team", default=dict, blank=True)
+
+    @property
+    def checkin_lock_at(self):
+        """Mốc khóa sổ: deadline_at nếu leader set, không thì giờ đánh trận."""
+        return self.deadline_at or self.battle_start_at
+
+    @property
+    def checkin_locked(self):
+        """Đã quá giờ khóa sổ chưa. Cả hai mốc đều trống -> không bao giờ khóa."""
+        from django.utils import timezone as _tz
+        lock_at = self.checkin_lock_at
+        return lock_at is not None and _tz.now() >= lock_at
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -189,18 +205,34 @@ class WarEvent(models.Model):
         verbose_name_plural = "Sự kiện bang chiến"
         ordering = ["-event_date"]
         indexes = [
-            models.Index(fields=["is_current"]),
-            models.Index(fields=["status"]),
+            models.Index(fields=["is_current"], name="attendance__is_curr_bcd787_idx"),
+            models.Index(fields=["status"], name="attendance__status_839ebf_idx"),
+            models.Index(fields=["event_type", "is_current"], name="attendance_w_event__e5b58b_idx"),
+            models.Index(fields=["event_type", "status"], name="attendance_w_event__60b7a3_idx"),
         ]
 
     def save(self, *args, **kwargs):
-        # Đảm bảo chỉ có 1 event is_current
+        # Đảm bảo mỗi loại sự kiện chỉ có 1 event is_current.
+        # Bang chiến và Scrim có current riêng, không ghi đè nhau.
         if self.is_current:
-            WarEvent.objects.exclude(pk=self.pk).update(is_current=False)
+            WarEvent.objects.filter(event_type=self.event_type).exclude(pk=self.pk).update(is_current=False)
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.title} ({self.event_date})"
+        return f"{self.get_event_type_display()} – {self.title} ({self.event_date})"
+
+    @property
+    def feedback_start_at(self):
+        """Mốc mở feedback. Nếu chưa set giờ cụ thể, fallback 19:00 ngày bang chiến."""
+        if self.battle_start_at:
+            return self.battle_start_at
+
+        from datetime import datetime, time
+
+        naive_dt = datetime.combine(self.event_date, time(19, 0))
+        if timezone.is_naive(naive_dt):
+            return timezone.make_aware(naive_dt, timezone.get_current_timezone())
+        return naive_dt
 
 
 class Attendance(models.Model):
@@ -222,8 +254,10 @@ class Attendance(models.Model):
     war_event = models.ForeignKey(
         WarEvent, on_delete=models.CASCADE, related_name="attendances", verbose_name="Sự kiện"
     )
+    # PROTECT: chặn xoá Member còn lịch sử điểm danh (bảo toàn dữ liệu chuyên cần).
+    # Member rời bang -> tắt active, KHÔNG xoá. Xem action "Cho rời bang" trong admin.
     member = models.ForeignKey(
-        Member, on_delete=models.CASCADE, related_name="attendances", verbose_name="Thành viên"
+        Member, on_delete=models.PROTECT, related_name="attendances", verbose_name="Thành viên"
     )
     status = models.CharField("Trạng thái", max_length=20, choices=Status.choices)
     note = models.TextField("Ghi chú", blank=True)
@@ -248,9 +282,9 @@ class Attendance(models.Model):
             )
         ]
         indexes = [
-            models.Index(fields=["war_event"]),
-            models.Index(fields=["status"]),
-            models.Index(fields=["war_event", "battle_team", "battle_position"]),
+            models.Index(fields=["war_event"], name="attendance__war_eve_3fafc5_idx"),
+            models.Index(fields=["status"], name="attendance__status_132c06_idx"),
+            models.Index(fields=["war_event", "battle_team", "battle_position"], name="att_war_team_pos_idx"),
         ]
 
     def __str__(self):
@@ -285,8 +319,8 @@ class AttendanceAuditLog(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        verbose_name = "Lịch sử điểm danh"
-        verbose_name_plural = "Lịch sử điểm danh"
+        verbose_name = "Lịch sử thay đổi điểm danh"
+        verbose_name_plural = "Lịch sử thay đổi điểm danh"
         ordering = ["-created_at"]
 
     def __str__(self):
@@ -296,40 +330,264 @@ class AttendanceAuditLog(models.Model):
         )
 
 
+class BattleFeedback(models.Model):
+    """
+    Feedback ẩn danh mềm sau bang chiến.
+    Leader chỉ xem content/thời gian/event; audit hash chỉ dành cho server owner/dev khi cần.
+    """
+
+    war_event = models.ForeignKey(
+        WarEvent,
+        on_delete=models.CASCADE,
+        related_name="feedbacks",
+        verbose_name="Sự kiện bang chiến",
+    )
+    content = models.TextField("Nội dung feedback")
+    device_id_hash = models.CharField("Device hash", max_length=64, blank=True, db_index=True)
+    member_id_hash = models.CharField("Member hash", max_length=64, blank=True)
+    ip_hash = models.CharField("IP hash", max_length=64, blank=True)
+    user_agent_hash = models.CharField("User-Agent hash", max_length=64, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Feedback bang chiến"
+        verbose_name_plural = "Feedback bang chiến"
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["war_event", "device_id_hash"],
+                name="unique_feedback_per_device_event",
+            )
+        ]
+        indexes = [
+            models.Index(fields=["war_event", "created_at"], name="att_feedback_event_time_idx"),
+        ]
+
+    def __str__(self):
+        return f"Feedback {self.war_event} – {self.created_at:%d/%m %H:%M}"
+
+    @property
+    def short_content(self):
+        text = (self.content or "").strip()
+        return text[:80] + ("..." if len(text) > 80 else "")
+
+
+
 class MemberRequest(models.Model):
     """
-    Yêu cầu thêm thành viên mới.
-    - BR4: Không tự động tạo Member chính thức.
-    - BR5: Admin duyệt mới tạo Member từ request này.
+    Yêu cầu liên quan đến thành viên.
+
+    - request_type=add: đề nghị tạo nhân vật mới.
+    - request_type=update: đề nghị đổi tên/phái cho Member hiện có.
+    - Member chỉ được tạo/cập nhật sau khi leader duyệt.
+    - Dữ liệu cũ và người/thời gian xử lý được giữ lại để audit.
     """
+
+    class RequestType(models.TextChoices):
+        ADD = "add", "Tạo mới"
+        UPDATE = "update", "Chỉnh thông tin"
 
     class Status(models.TextChoices):
         PENDING = "pending", "Chờ duyệt"
         APPROVED = "approved", "Đã duyệt"
         REJECTED = "rejected", "Từ chối"
 
-    requested_name = models.CharField("Tên nhân vật yêu cầu", max_length=100)
-    class_name = models.CharField("Phái", max_length=50, choices=Member.ClassName.choices, blank=True)
-    class_variant = models.CharField("Hệ/phân nhánh", max_length=50, choices=Member.ClassVariant.choices, blank=True)
+    request_type = models.CharField(
+        "Loại yêu cầu",
+        max_length=20,
+        choices=RequestType.choices,
+        default=RequestType.ADD,
+    )
+    target_member = models.ForeignKey(
+        Member,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="change_requests",
+        verbose_name="Nhân vật cần chỉnh",
+    )
+
+    # requested_* là dữ liệu đề xuất. Với request tạo mới, đây là dữ liệu member mới.
+    requested_name = models.CharField("Tên nhân vật đề xuất", max_length=100)
+    class_name = models.CharField(
+        "Phái đề xuất",
+        max_length=50,
+        choices=Member.ClassName.choices,
+        blank=True,
+    )
+    class_variant = models.CharField(
+        "Hệ/phân nhánh đề xuất",
+        max_length=50,
+        choices=Member.ClassVariant.choices,
+        blank=True,
+    )
+
+    # Snapshot dữ liệu trước khi chỉnh, để audit vẫn còn ngay cả khi Member đổi sau đó.
+    original_name = models.CharField("Tên ban đầu", max_length=100, blank=True)
+    original_class_name = models.CharField("Phái ban đầu", max_length=50, blank=True)
+    original_class_variant = models.CharField(
+        "Hệ/phân nhánh ban đầu",
+        max_length=50,
+        blank=True,
+    )
+
     role = models.CharField("Role", max_length=20, blank=True)
     team = models.CharField("Đội", max_length=50, blank=True)
-    note = models.TextField("Ghi chú", blank=True)
+    note = models.TextField("Ghi chú của người gửi", blank=True)
     status = models.CharField(
-        "Trạng thái", max_length=20, choices=Status.choices, default=Status.PENDING
+        "Trạng thái",
+        max_length=20,
+        choices=Status.choices,
+        default=Status.PENDING,
     )
+
+    reviewed_by = models.ForeignKey(
+        "auth.User",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="reviewed_member_requests",
+        verbose_name="Người xử lý",
+    )
+    reviewed_at = models.DateTimeField("Xử lý lúc", null=True, blank=True)
+    review_note = models.TextField("Ghi chú xử lý", blank=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = "Yêu cầu thêm thành viên"
-        verbose_name_plural = "Yêu cầu thêm thành viên"
+        verbose_name = "Yêu cầu thành viên"
+        verbose_name_plural = "Yêu cầu thành viên"
         ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["request_type", "status"], name="att_mreq_type_status_idx"),
+            models.Index(fields=["target_member", "status"], name="att_mreq_target_status_idx"),
+        ]
 
     def save(self, *args, **kwargs):
         allowed_variants = VALID_CLASS_VARIANTS.get(self.class_name, set())
         if self.class_variant and self.class_variant not in allowed_variants:
             self.class_variant = ""
+
+        if self.request_type == self.RequestType.UPDATE and self.target_member_id:
+            # Chỉ tự chụp snapshot khi request mới chưa có snapshot.
+            if not self.original_name:
+                self.original_name = self.target_member.display_name
+            if not self.original_class_name:
+                self.original_class_name = self.target_member.class_name
+            if not self.original_class_variant:
+                self.original_class_variant = self.target_member.class_variant
+
         super().save(*args, **kwargs)
 
+    @property
+    def is_update(self):
+        return self.request_type == self.RequestType.UPDATE
+
+    @property
+    def has_name_change(self):
+        return self.is_update and self.requested_name != self.original_name
+
+    @property
+    def has_class_change(self):
+        return self.is_update and (
+            self.class_name != self.original_class_name
+            or self.class_variant != self.original_class_variant
+        )
+
     def __str__(self):
-        return f"Request: {self.requested_name} ({self.get_status_display()})"
+        return (
+            f"{self.get_request_type_display()}: "
+            f"{self.requested_name} ({self.get_status_display()})"
+        )
+
+
+
+class AdminActionLog(models.Model):
+    """
+    Nhật ký thao tác trong khu quản trị (Django admin + action của leader).
+
+    Khác gì với LogEntry sẵn có của Django:
+    - LogEntry chỉ ghi "đã đổi trường Tên hiển thị", KHÔNG lưu giá trị cũ.
+    - Bảng này lưu cả giá trị TRƯỚC và SAU của từng trường (cột changes),
+      cộng dấu vết thiết bị (IP, trình duyệt, mã browser theo cookie).
+
+    Mã browser_id là cookie ngẫu nhiên gắn theo từng trình duyệt: hai người
+    dùng CHUNG một account admin nhưng khác máy sẽ có browser_id khác nhau,
+    nên vẫn tách được ai là ai — dù account giống hệt.
+    """
+
+    class Action(models.TextChoices):
+        CREATE = "create", "Tạo mới"
+        UPDATE = "update", "Chỉnh sửa"
+        DELETE = "delete", "Xoá"
+
+    actor = models.ForeignKey(
+        "auth.User",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="admin_action_logs",
+        verbose_name="Tài khoản",
+    )
+    actor_username = models.CharField("Tên đăng nhập", max_length=150, blank=True)
+    action = models.CharField("Hành động", max_length=20, choices=Action.choices)
+    object_type = models.CharField("Loại đối tượng", max_length=100, blank=True)
+    object_id = models.CharField("ID đối tượng", max_length=50, blank=True)
+    object_repr = models.CharField("Đối tượng", max_length=250, blank=True)
+    # {"display_name": ["Tên cũ", "Tên mới"], "active": [true, false], ...}
+    changes = models.JSONField("Thay đổi", default=dict, blank=True)
+    ip_address = models.CharField("IP", max_length=64, blank=True)
+    user_agent = models.CharField("Thiết bị/trình duyệt", max_length=300, blank=True)
+    browser_id = models.CharField("Mã trình duyệt", max_length=64, blank=True)
+    note = models.CharField("Ghi chú", max_length=250, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Nhật ký quản trị"
+        verbose_name_plural = "Nhật ký quản trị"
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["-created_at"]),
+            models.Index(fields=["object_type", "object_id"]),
+            models.Index(fields=["actor_username"]),
+        ]
+
+    def __str__(self):
+        return f"{self.actor_username} {self.get_action_display()} {self.object_repr}"
+
+    @property
+    def device_label(self):
+        """Rút gọn User-Agent thành nhãn dễ đọc: 'Chrome · Windows'."""
+        ua = self.user_agent or ""
+        if not ua:
+            return "—"
+        if "iPhone" in ua or "iPad" in ua:
+            os_name = "iOS"
+        elif "Android" in ua:
+            os_name = "Android"
+        elif "Windows" in ua:
+            os_name = "Windows"
+        elif "Mac OS" in ua or "Macintosh" in ua:
+            os_name = "macOS"
+        elif "Linux" in ua:
+            os_name = "Linux"
+        else:
+            os_name = "Khác"
+        if "Edg/" in ua:
+            browser = "Edge"
+        elif "Chrome/" in ua and "Chromium" not in ua:
+            browser = "Chrome"
+        elif "Firefox/" in ua:
+            browser = "Firefox"
+        elif "Safari/" in ua and "Chrome/" not in ua:
+            browser = "Safari"
+        else:
+            browser = "Khác"
+        return f"{browser} · {os_name}"
+
+    @property
+    def browser_short(self):
+        """6 ký tự đầu của mã trình duyệt — đủ để phân biệt máy, đủ ngắn để đọc."""
+        return (self.browser_id or "")[:6] or "—"
