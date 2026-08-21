@@ -1,40 +1,43 @@
 {% extends "base.html" %}
-{% block title %}Đăng nhập Leader – BangCheck{% endblock %}
+{% load static %}
+{% block title %}Đăng nhập Leader · BangCheck{% endblock %}
+{% block body_class %}bc-login{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center mt-4">
-  <div class="col-12 col-sm-8 col-md-5 col-lg-4">
-    <div class="card shadow-sm">
-      <div class="card-header bg-dark text-white text-center py-3">
-        <h5 class="mb-0 fw-bold">🔒 Leader Login</h5>
+<div class="bc-login-shell">
+  <section class="bc-panel bc-login-card">
+    <div class="bc-panel-body text-center">
+      <div class="bc-login-logo">
+        <span class="bc-login-seal" aria-hidden="true">B</span>
       </div>
-      <div class="card-body p-4">
-        {% if form.errors %}
-          <div class="alert alert-danger small">Sai tài khoản hoặc mật khẩu.</div>
-        {% endif %}
+      <span class="bc-kicker">Leader</span>
+      <h1 class="bc-title fs-2">Đăng nhập leader</h1>
+      <p class="bc-subtitle mx-auto">Truy cập khu điều hành điểm danh, feedback, sự kiện và đội hình.</p>
 
-        <form method="POST">
-          {% csrf_token %}
-          <input type="hidden" name="next" value="{{ next }}">
+      {% if form.errors %}
+        <div class="alert alert-danger small mt-3">Sai tài khoản hoặc mật khẩu.</div>
+      {% endif %}
 
-          <div class="mb-3">
-            <label class="form-label fw-semibold">Tên đăng nhập</label>
-            <input type="text" name="username" class="form-control" autofocus autocomplete="username">
-          </div>
-          <div class="mb-4">
-            <label class="form-label fw-semibold">Mật khẩu</label>
-            <input type="password" name="password" class="form-control" autocomplete="current-password">
-          </div>
-          <div class="d-grid">
-            <button type="submit" class="btn btn-warning btn-lg fw-bold">⚔️ Đăng nhập</button>
-          </div>
-        </form>
-      </div>
+      <form method="POST" class="text-start mt-4">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next }}">
+        <div class="mb-3">
+          <label class="form-label">Tên đăng nhập</label>
+          <input type="text" name="username" class="form-control form-control-lg" autofocus autocomplete="username">
+        </div>
+        <div class="mb-4">
+          <label class="form-label">Mật khẩu</label>
+          <input type="password" name="password" class="form-control form-control-lg" autocomplete="current-password">
+        </div>
+        <div class="d-grid">
+          <button type="submit" class="btn btn-bc-primary btn-lg">Đăng nhập</button>
+        </div>
+      </form>
     </div>
+  </section>
 
-    <div class="text-center mt-3">
-      <a href="{% url 'checkin' %}" class="btn btn-link text-muted btn-sm">← Trang báo danh</a>
-    </div>
+  <div class="text-center mt-3">
+    <a href="{% url 'checkin' %}" class="btn btn-link text-muted btn-sm">Quay lại trang công khai</a>
   </div>
 </div>
 {% endblock %}

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Tạm khóa đăng nhập · BangCheck{% endblock %}
+{% block body_class %}bc-login{% endblock %}
+
+{% block content %}
+<div class="bc-login-shell">
+  <section class="bc-panel bc-login-card">
+    <div class="bc-panel-body text-center">
+      <div class="bc-login-logo">
+        <span class="bc-login-seal" aria-hidden="true">B</span>
+      </div>
+      <h1 class="bc-title fs-2">Tạm khóa đăng nhập</h1>
+      <p class="bc-subtitle mx-auto mt-2">
+        Đăng nhập sai quá 5 lần liên tiếp. Vui lòng chờ khoảng <strong>15 phút</strong> rồi thử lại.
+      </p>
+      <p class="bc-muted small mt-3 mb-0">
+        Nếu bạn quên mật khẩu, liên hệ người quản lý server để đặt lại.
+      </p>
+      <div class="d-grid mt-4">
+        <a href="{% url 'checkin' %}" class="btn btn-outline-primary">Về trang báo danh</a>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}
